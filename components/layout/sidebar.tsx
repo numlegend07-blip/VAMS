@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 const menu = [
   { label: "Dashboard", href: "/valves", icon: LayoutDashboard },
   { label: "PM", href: null, icon: ClipboardList },
-  { label: "แผนที่", href: null, icon: Map },
+  { label: "แผนที่", href: "/valves/map", icon: Map },
   { label: "รายงาน", href: null, icon: BarChart3 },
   { label: "ตั้งค่า", href: null, icon: Settings },
 ];
@@ -46,7 +46,11 @@ export default function Sidebar() {
       <nav className="flex flex-1 flex-col gap-1 px-3 pt-2">
         {menu.map((item) => {
           const Icon = item.icon;
-          const active = item.href !== null && pathname.startsWith(item.href);
+          const active =
+            item.href === "/valves"
+              ? pathname === "/valves" ||
+                (pathname.startsWith("/valves/") && !pathname.startsWith("/valves/map"))
+              : item.href !== null && pathname.startsWith(item.href);
 
           if (!item.href) {
             return (

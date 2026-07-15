@@ -1,4 +1,5 @@
 import { getValveById } from "@/lib/data/valves";
+import { getPMHistory } from "@/lib/data/pm-history";
 import ValveInfoCard from "@/components/detail/valve-info-card";
 
 type Props = {
@@ -25,9 +26,11 @@ export default async function ValveDetailPage({ params }: Props) {
     );
   }
 
+  const pmRecords = await getPMHistory(id);
+
   return (
     <div className="mx-auto max-w-7xl">
-      <ValveInfoCard valve={valve} />
+      <ValveInfoCard valve={valve} pmRecords={pmRecords} />
     </div>
   );
 }

@@ -41,3 +41,18 @@ export interface Valve {
 export interface ValveWithBranch extends Valve {
   branch: Pick<Branch, "id" | "name">;
 }
+
+export type PMType = "ตรวจสอบ" | "ซ่อมบำรุง" | "เปลี่ยนอะไหล่";
+
+export interface PMRecord {
+  id: string;
+  valve_id: string;
+  performed_at: string;
+  title: string;
+  description: string | null;
+  pm_type: PMType;
+  photo_before_url: string | null;
+  photo_after_url: string | null;
+  created_by: string | null;
+  created_at: string;
+}

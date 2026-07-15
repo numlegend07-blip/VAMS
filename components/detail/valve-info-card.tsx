@@ -2,22 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Building2, CalendarDays, Settings2 } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, CalendarDays, Settings2, Plus } from "lucide-react";
 
-import { ValveWithBranch } from "@/types";
+import { PMRecord, ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
 
 import DetailSpecCard from "./detail-spec-card";
 import ActionButtons from "./action-buttons";
 import HealthCard from "./health-card";
 import PMTimeline from "../pm/pm-timeline";
+import PMForm from "../pm/pm-form";
 
 type Props = {
   valve: ValveWithBranch;
+  pmRecords: PMRecord[];
 };
 
-export default function ValveInfoCard({ valve }: Props) {
+export default function ValveInfoCard({ valve, pmRecords }: Props) {
   const [showPM, setShowPM] = useState(false);
+  const [showPMForm, setShowPMForm] = useState(false);
 
   const active = valve.status === "ใช้งาน";
   const healthScore = active ? 92 : valve.status === "ไม่ระบุ" ? 60 : 40;
@@ -113,7 +116,23 @@ export default function ValveInfoCard({ valve }: Props) {
             <ActionButtons onPMClick={() => setShowPM((v) => !v)} pmActive={showPM} />
           </div>
 
-          {showPM && <PMTimeline />}
+          {showPM && (
+            <>
+              <PMTimeline records={pmRecords} />
+
+              {showPMForm ? (
+                <PMForm valveId={valve.id} onDone={() => setShowPMForm(false)} />
+              ) : (
+                <button
+                  onClick={() => setShowPMForm(true)}
+                  className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.25} />
+                  เพิ่มบันทึก PM
+                </button>
+              )}
+            </>
+          )}
         </div>
 
         <HealthCard score={healthScore} />
