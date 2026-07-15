@@ -80,7 +80,7 @@ export default function ValvesByBranchChart({ valves, selectedBranchId, onSelect
                 color: "var(--foreground)",
                 boxShadow: "var(--shadow-md)",
               }}
-              formatter={(value: number) => [`${value} ตัว`, "จำนวนวาล์ว"]}
+              formatter={(value) => [`${value} ตัว`, "จำนวนวาล์ว"]}
             />
             <Bar
               dataKey="count"
@@ -88,9 +88,10 @@ export default function ValvesByBranchChart({ valves, selectedBranchId, onSelect
               maxBarSize={18}
               isAnimationActive={false}
               label={{ position: "right", fill: "#64748b", fontSize: 12 }}
-              onClick={(entry: { branchId: string }) =>
-                onSelectBranch(entry.branchId === selectedBranchId ? null : entry.branchId)
-              }
+              onClick={(entry) => {
+                const branchId = (entry.payload as { branchId: string }).branchId;
+                onSelectBranch(branchId === selectedBranchId ? null : branchId);
+              }}
               cursor="pointer"
             >
               {data.map((entry) => (
