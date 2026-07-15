@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VAMS Dashboard",
-  description: "Enterprise valve alert and maintenance dashboard.",
+  title: "VAMS — Valve Alert & Maintenance System",
+  description: "ระบบบริหารจัดการ Control Valve การประปาส่วนภูมิภาค เขต 10",
 };
 
 export default function RootLayout({
@@ -24,10 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="th"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-slate-50 text-slate-900">{children}</body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
