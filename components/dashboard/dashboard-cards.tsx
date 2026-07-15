@@ -20,6 +20,7 @@ export default function DashboardCards({ valves }: Props) {
         value={String(total)}
         icon={Gauge}
         tone="text-primary bg-primary-subtle"
+        accent="bg-primary"
       />
 
       <Card
@@ -27,6 +28,7 @@ export default function DashboardCards({ valves }: Props) {
         value={String(active)}
         icon={CircleCheck}
         tone="text-success bg-success-subtle"
+        accent="bg-success"
       />
 
       <Card
@@ -34,6 +36,7 @@ export default function DashboardCards({ valves }: Props) {
         value={String(inactive)}
         icon={CircleX}
         tone="text-danger bg-danger-subtle"
+        accent="bg-danger"
       />
 
       <Card
@@ -41,6 +44,7 @@ export default function DashboardCards({ valves }: Props) {
         value={String(unknown)}
         icon={HelpCircle}
         tone="text-neutral bg-neutral-subtle"
+        accent="bg-neutral"
       />
     </div>
   );
@@ -51,23 +55,28 @@ function Card({
   value,
   icon: Icon,
   tone,
+  accent,
 }: {
   title: string;
   value: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   tone: string;
+  accent: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm transition-shadow hover:shadow-md">
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}>
-        <Icon className="h-5 w-5" strokeWidth={2.25} />
-      </div>
+    <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-shadow hover:shadow-md">
+      <div className="p-5">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}>
+          <Icon className="h-5 w-5" strokeWidth={2.25} />
+        </div>
 
-      <div className="mt-4 text-sm text-muted-foreground">{title}</div>
+        <div className="mt-4 text-sm text-muted-foreground">{title}</div>
 
-      <div className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-        {value}
+        <div className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+          {value}
+        </div>
       </div>
+      <div className={`h-1 w-full ${accent}`} />
     </div>
   );
 }

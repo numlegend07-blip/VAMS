@@ -3,72 +3,77 @@
 import {
   BarChart,
   Bar,
-  Cell,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
-import { ValveWithBranch } from "@/types";
+import { Branch, ValveWithBranch } from "@/types";
+
+const STATUS_COLORS = {
+  ใช้งาน: "#0ca30c",
+  ไม่ได้ใช้งาน: "#d03b3b",
+  ไม่ระบุ: "#94a3b8",
+};
 
 type Props = {
   valves: ValveWithBranch[];
-  selectedBranchId: string | null;
+  branches: Branch[];
   onSelectBranch: (branchId: string | null) => void;
 };
 
-export default function ValvesByBranchChart({ valves, selectedBranchId, onSelectBranch }: Props) {
-  const countByBranch = new Map<string, { branchId: string; name: string; count: number }>();
-
-  for (const valve of valves) {
-    const key = valve.branch.id;
-    const existing = countByBranch.get(key);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      countByBranch.set(key, { branchId: key, name: valve.branch.name, count: 1 });
-    }
-  }
-
-  const data = [...countByBranch.values()].sort((a, b) => b.count - a.count);
-
-  const rowHeight = 26;
-  const chartHeight = Math.max(data.length * rowHeight, 200);
+export default function ValvesByBranchChart({ valves, branches, onSelectBranch }: Props) {
+  const data = branches.map((branch) => {
+    const branchValves = valves.filter((v) => v.branch_id === branch.id);
+    return {
+      branchId: branch.id,
+      name: branch.name,
+      ใช้งาน: branchValves.filter((v) => v.status === "ใช้งาน").length,
+      ไม่ได้ใช้งาน: branchValves.filter((v) => v.status === "ไม่ได้ใช้งาน").length,
+      ไม่ระบุ: branchValves.filter((v) => v.status === "ไม่ระบุ").length,
+    };
+  });
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-6">
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold text-foreground">
-          จำนวนวาล์วแยกตามสาขา
+          ข้อมูลแยกรายสาขา ({branches.length} สาขา)
         </h2>
-        {selectedBranchId && (
-          <button
-            onClick={() => onSelectBranch(null)}
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            ล้างตัวกรอง
-          </button>
-        )}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          {(Object.keys(STATUS_COLORS) as Array<keyof typeof STATUS_COLORS>).map((key) => (
+            <span key={key} className="flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: STATUS_COLORS[key] }}
+              />
+              {key}
+            </span>
+          ))}
+        </div>
       </div>
-      <p className="mb-4 text-xs text-muted-foreground">คลิกที่แท่งกราฟเพื่อกรองข้อมูลตามสาขา</p>
 
-      <div style={{ width: "100%", height: chartHeight }}>
+      <div style={{ width: "100%", height: 360 }}>
         <ResponsiveContainer>
-          <BarChart
-            data={data}
-            layout="vertical"
-            margin={{ top: 0, right: 28, bottom: 0, left: 0 }}
-            barCategoryGap={8}
-          >
-            <XAxis type="number" hide />
-            <YAxis
-              type="category"
+          <BarChart data={data} margin={{ top: 4, right: 8, bottom: 60, left: 0 }}>
+            <CartesianGrid vertical={false} stroke="var(--border)" />
+            <XAxis
               dataKey="name"
-              width={100}
-              tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+              interval={0}
+              angle={-55}
+              textAnchor="end"
+              height={70}
+              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              tickLine={false}
+              axisLine={{ stroke: "var(--border)" }}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               tickLine={false}
               axisLine={false}
+              allowDecimals={false}
             />
             <Tooltip
               cursor={{ fill: "var(--surface-muted)" }}
@@ -76,35 +81,42 @@ export default function ValvesByBranchChart({ valves, selectedBranchId, onSelect
                 background: "var(--surface)",
                 border: "1px solid var(--border)",
                 borderRadius: 10,
-                fontSize: 13,
+                fontSize: 12,
                 color: "var(--foreground)",
                 boxShadow: "var(--shadow-md)",
               }}
-              formatter={(value) => [`${value} ตัว`, "จำนวนวาล์ว"]}
             />
             <Bar
-              dataKey="count"
-              radius={[0, 4, 4, 0]}
-              maxBarSize={18}
+              dataKey="ใช้งาน"
+              stackId="status"
+              fill={STATUS_COLORS["ใช้งาน"]}
               isAnimationActive={false}
-              label={{ position: "right", fill: "#64748b", fontSize: 12 }}
-              onClick={(entry) => {
-                const branchId = (entry.payload as { branchId: string }).branchId;
-                onSelectBranch(branchId === selectedBranchId ? null : branchId);
-              }}
+              onClick={(entry) =>
+                onSelectBranch((entry.payload as { branchId: string }).branchId)
+              }
               cursor="pointer"
-            >
-              {data.map((entry) => (
-                <Cell
-                  key={entry.branchId}
-                  fill={
-                    !selectedBranchId || selectedBranchId === entry.branchId
-                      ? "#2563eb"
-                      : "#bfdbfe"
-                  }
-                />
-              ))}
-            </Bar>
+            />
+            <Bar
+              dataKey="ไม่ได้ใช้งาน"
+              stackId="status"
+              fill={STATUS_COLORS["ไม่ได้ใช้งาน"]}
+              isAnimationActive={false}
+              onClick={(entry) =>
+                onSelectBranch((entry.payload as { branchId: string }).branchId)
+              }
+              cursor="pointer"
+            />
+            <Bar
+              dataKey="ไม่ระบุ"
+              stackId="status"
+              fill={STATUS_COLORS["ไม่ระบุ"]}
+              radius={[3, 3, 0, 0]}
+              isAnimationActive={false}
+              onClick={(entry) =>
+                onSelectBranch((entry.payload as { branchId: string }).branchId)
+              }
+              cursor="pointer"
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

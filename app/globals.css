@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f9fafb;
   --foreground: #0f172a;
@@ -32,6 +34,40 @@
   --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.04);
   --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.06), 0 2px 4px -2px rgb(15 23 42 / 0.04);
   --shadow-lg: 0 12px 24px -6px rgb(15 23 42 / 0.10), 0 4px 8px -4px rgb(15 23 42 / 0.06);
+}
+
+.dark {
+  --background: #0b1220;
+  --foreground: #e2e8f0;
+
+  --surface: #111827;
+  --surface-muted: #1a2332;
+
+  --muted-foreground: #94a3b8;
+
+  --border: #1e293b;
+  --border-strong: #334155;
+
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-subtle: #1e2a4a;
+  --primary-foreground: #ffffff;
+
+  --success: #22c55e;
+  --success-subtle: #0f2a1a;
+
+  --danger: #ef4444;
+  --danger-subtle: #2a1215;
+
+  --warning: #fab219;
+  --warning-subtle: #2a1f0a;
+
+  --neutral: #94a3b8;
+  --neutral-subtle: #1e293b;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 12px 24px -6px rgb(0 0 0 / 0.4), 0 4px 8px -4px rgb(0 0 0 / 0.3);
 }
 
 @theme inline {

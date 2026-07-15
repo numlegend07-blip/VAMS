@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import BranchFilter from "@/components/dashboard/branch-filter";
-import ExecutiveSummary from "@/components/dashboard/executive-summary";
+import DashboardTitleBar from "@/components/dashboard/dashboard-title-bar";
 import DashboardCards from "@/components/dashboard/dashboard-cards";
 import ValveStatusChart from "@/components/charts/valve-status-chart";
 import ValvesByBranchChart from "@/components/charts/valves-by-branch-chart";
@@ -26,27 +25,22 @@ export default function DashboardView({ valves, branches }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <BranchFilter
-        branches={branches}
-        value={branchId}
-        onChange={setBranchId}
-        resultCount={filteredValves.length}
-      />
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <ExecutiveSummary valves={filteredValves} />
-        </div>
-        <ValveStatusChart valves={filteredValves} />
-      </div>
+      <DashboardTitleBar branches={branches} value={branchId} onChange={setBranchId} />
 
       <DashboardCards valves={filteredValves} />
 
-      <ValvesByBranchChart
-        valves={valves}
-        selectedBranchId={branchId === "all" ? null : branchId}
-        onSelectBranch={(id) => setBranchId(id ?? "all")}
-      />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <ValveStatusChart valves={filteredValves} />
+        </div>
+        <div className="lg:col-span-3">
+          <ValvesByBranchChart
+            valves={valves}
+            branches={branches}
+            onSelectBranch={(id) => setBranchId(id ?? "all")}
+          />
+        </div>
+      </div>
 
       <ValveExplorer valves={filteredValves} />
     </div>
