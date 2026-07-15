@@ -1,27 +1,43 @@
-export interface ControlValve {
+export interface Branch {
   id: string;
-  branch: string;
-  valveType: string;
+  name: string;
+  note: string | null;
+  created_at: string;
+}
+
+export type ValveStatus = "ใช้งาน" | "ไม่ได้ใช้งาน" | "ไม่ระบุ";
+
+export interface Valve {
+  id: string;
+  branch_id: string;
+  seq_no: number | null;
+
+  valve_type: string;
   brand: string;
-  model?: string;
-  size: string;
+  model: string | null;
+  size_mm: number | null;
 
-  status: "ใช้งาน" | "ไม่ได้ใช้งาน";
+  status: ValveStatus;
+  inactive_reason: string | null;
 
-  location: string;
+  location: string | null;
+  latitude: number | null;
+  longitude: number | null;
 
-  latitude: number;
-  longitude: number;
+  install_year_be: number | null;
+  asset_code: string | null;
+  remark: string | null;
 
-  installYear?: string;
+  pressure_in: number | null;
+  pressure_out: number | null;
+  flow_rate: number | null;
 
-  assetCode?: string;
+  image_url: string | null;
 
-  pressureIn?: number;
+  created_at: string;
+  updated_at: string;
+}
 
-  pressureOut?: number;
-
-  flowRate?: number;
-
-  remark?: string;
+export interface ValveWithBranch extends Valve {
+  branch: Pick<Branch, "id" | "name">;
 }

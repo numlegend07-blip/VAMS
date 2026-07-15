@@ -1,15 +1,17 @@
-import { Gauge, CircleCheck, CircleX, ClipboardCheck } from "lucide-react";
+import { Gauge, CircleCheck, CircleX, HelpCircle } from "lucide-react";
 
-import { controlValves } from "@/data/control-valves";
+import { ValveWithBranch } from "@/types";
 
-export default function DashboardCards() {
-  const total = controlValves.length;
+type Props = {
+  valves: ValveWithBranch[];
+};
 
-  const active = controlValves.filter(
-    (v) => v.status === "ใช้งาน"
-  ).length;
+export default function DashboardCards({ valves }: Props) {
+  const total = valves.length;
 
-  const inactive = total - active;
+  const active = valves.filter((v) => v.status === "ใช้งาน").length;
+  const inactive = valves.filter((v) => v.status === "ไม่ได้ใช้งาน").length;
+  const unknown = valves.filter((v) => v.status === "ไม่ระบุ").length;
 
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -35,10 +37,10 @@ export default function DashboardCards() {
       />
 
       <Card
-        title="PM สำเร็จ"
-        value="100%"
-        icon={ClipboardCheck}
-        tone="text-warning bg-warning-subtle"
+        title="ไม่ระบุสถานะ"
+        value={String(unknown)}
+        icon={HelpCircle}
+        tone="text-neutral bg-neutral-subtle"
       />
     </div>
   );

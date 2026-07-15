@@ -1,4 +1,4 @@
-import { controlValves } from "@/data/control-valves";
+import { getValveById } from "@/lib/data/valves";
 import ValveInfoCard from "@/components/detail/valve-info-card";
 
 type Props = {
@@ -10,9 +10,7 @@ type Props = {
 export default async function ValveDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const valve = controlValves.find(
-    (item) => item.id === id
-  );
+  const valve = await getValveById(id);
 
   if (!valve) {
     return (

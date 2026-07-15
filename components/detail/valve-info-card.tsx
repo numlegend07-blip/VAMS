@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Building2, CalendarDays, Settings2 } from "lucide-react";
 
-import { ControlValve } from "@/types";
+import { ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
 
 import DetailSpecCard from "./detail-spec-card";
@@ -13,14 +13,14 @@ import HealthCard from "./health-card";
 import PMTimeline from "../pm/pm-timeline";
 
 type Props = {
-  valve: ControlValve;
+  valve: ValveWithBranch;
 };
 
 export default function ValveInfoCard({ valve }: Props) {
   const [showPM, setShowPM] = useState(false);
 
   const active = valve.status === "ใช้งาน";
-  const healthScore = active ? 92 : 40;
+  const healthScore = active ? 92 : valve.status === "ไม่ระบุ" ? 60 : 40;
 
   return (
     <div>
@@ -40,35 +40,44 @@ export default function ValveInfoCard({ valve }: Props) {
 
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-              {valve.id}
+              {valve.asset_code || valve.id.slice(0, 8).toUpperCase()}
             </h1>
 
             <h2 className="mt-1 text-sm font-medium text-primary">
-              {valve.brand} {valve.model}
+              {valve.brand} {valve.model ?? ""}
             </h2>
 
             <span
               className={cn(
                 "mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-                active ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"
+                active
+                  ? "bg-success-subtle text-success"
+                  : valve.status === "ไม่ระบุ"
+                    ? "bg-neutral-subtle text-neutral"
+                    : "bg-danger-subtle text-danger"
               )}
             >
-              <span className={cn("h-1.5 w-1.5 rounded-full", active ? "bg-success" : "bg-danger")} />
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  active ? "bg-success" : valve.status === "ไม่ระบุ" ? "bg-neutral" : "bg-danger"
+                )}
+              />
               {valve.status}
             </span>
 
             <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-2">
               <span className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" strokeWidth={2.25} />
-                {valve.location}
+                {valve.location ?? "ไม่ระบุตำแหน่ง"}
               </span>
               <span className="flex items-center gap-2">
                 <Building2 className="h-4 w-4" strokeWidth={2.25} />
-                {valve.branch}
+                {valve.branch.name}
               </span>
               <span className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" strokeWidth={2.25} />
-                ปีติดตั้ง {valve.installYear ?? "-"}
+                ปีติดตั้ง {valve.install_year_be ?? "-"}
               </span>
             </div>
           </div>
@@ -78,13 +87,27 @@ export default function ValveInfoCard({ valve }: Props) {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <DetailSpecCard title="Pressure In" value={`${valve.pressureIn ?? "-"} bar`} />
-            <DetailSpecCard title="Pressure Out" value={`${valve.pressureOut ?? "-"} bar`} />
-            <DetailSpecCard title="Flow Rate" value={`${valve.flowRate ?? "-"}`} />
-            <DetailSpecCard title="Asset Code" value={valve.assetCode ?? "-"} />
-            <DetailSpecCard title="Valve Size" value={`${valve.size} mm`} />
-            <DetailSpecCard title="Valve Type" value={valve.valveType} />
+            <DetailSpecCard title="Pressure In" value={valve.pressure_in != null ? `${valve.pressure_in} bar` : "-"} />
+            <DetailSpecCard title="Pressure Out" value={valve.pressure_out != null ? `${valve.pressure_out} bar` : "-"} />
+            <DetailSpecCard title="Flow Rate" value={valve.flow_rate != null ? `${valve.flow_rate}` : "-"} />
+            <DetailSpecCard title="Asset Code" value={valve.asset_code ?? "-"} />
+            <DetailSpecCard title="Valve Size" value={valve.size_mm != null ? `${valve.size_mm} mm` : "-"} />
+            <DetailSpecCard title="Valve Type" value={valve.valve_type} />
           </div>
+
+          {valve.status !== "ใช้งาน" && valve.inactive_reason && (
+            <div className="mt-4 rounded-xl border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">เหตุผลที่ไม่ได้ใช้งาน: </span>
+              {valve.inactive_reason}
+            </div>
+          )}
+
+          {valve.remark && (
+            <div className="mt-4 rounded-xl border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">หมายเหตุ: </span>
+              {valve.remark}
+            </div>
+          )}
 
           <div className="mt-6">
             <ActionButtons onPMClick={() => setShowPM((v) => !v)} pmActive={showPM} />

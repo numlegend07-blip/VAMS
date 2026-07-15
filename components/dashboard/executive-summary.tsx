@@ -1,15 +1,16 @@
 import { MapPin, CircleCheck, CircleX, Wrench, TrendingUp } from "lucide-react";
 
-import { controlValves } from "@/data/control-valves";
+import { ValveWithBranch } from "@/types";
 
-export default function ExecutiveSummary() {
-  const total = controlValves.length;
+type Props = {
+  valves: ValveWithBranch[];
+};
 
-  const active = controlValves.filter(
-    (v) => v.status === "ใช้งาน"
-  ).length;
+export default function ExecutiveSummary({ valves }: Props) {
+  const total = valves.length;
 
-  const inactive = total - active;
+  const active = valves.filter((v) => v.status === "ใช้งาน").length;
+  const inactive = valves.filter((v) => v.status === "ไม่ได้ใช้งาน").length;
 
   const rows = [
     {

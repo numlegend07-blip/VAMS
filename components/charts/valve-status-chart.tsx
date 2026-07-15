@@ -1,28 +1,30 @@
 "use client";
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { controlValves } from "@/data/control-valves";
+import { ValveWithBranch } from "@/types";
 
 const STATUS_COLORS: Record<string, string> = {
   ใช้งาน: "#0ca30c",
   ไม่ได้ใช้งาน: "#d03b3b",
+  ไม่ระบุ: "#898781",
 };
 
-export default function ValveStatusChart() {
-  const useCount = controlValves.filter(
-    (v) => v.status === "ใช้งาน"
-  ).length;
+type Props = {
+  valves: ValveWithBranch[];
+};
 
-  const stopCount = controlValves.filter(
-    (v) => v.status !== "ใช้งาน"
-  ).length;
+export default function ValveStatusChart({ valves }: Props) {
+  const counts = {
+    ใช้งาน: valves.filter((v) => v.status === "ใช้งาน").length,
+    ไม่ได้ใช้งาน: valves.filter((v) => v.status === "ไม่ได้ใช้งาน").length,
+    ไม่ระบุ: valves.filter((v) => v.status === "ไม่ระบุ").length,
+  };
 
-  const total = useCount + stopCount;
+  const total = valves.length;
 
-  const data = [
-    { name: "ใช้งาน", value: useCount },
-    { name: "ไม่ได้ใช้งาน", value: stopCount },
-  ];
+  const data = (Object.keys(counts) as Array<keyof typeof counts>)
+    .map((name) => ({ name, value: counts[name] }))
+    .filter((entry) => entry.value > 0);
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-6">
@@ -69,7 +71,7 @@ export default function ValveStatusChart() {
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-5 text-xs">
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs">
         {data.map((entry) => (
           <span key={entry.name} className="flex items-center gap-1.5 text-muted-foreground">
             <span
