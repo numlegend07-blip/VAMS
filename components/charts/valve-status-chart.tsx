@@ -44,6 +44,7 @@ export default function ValveStatusChart({ valves }: Props) {
               paddingAngle={2}
               stroke="var(--surface)"
               strokeWidth={2}
+              isAnimationActive={false}
             >
               {data.map((entry) => (
                 <Cell key={entry.name} fill={STATUS_COLORS[entry.name]} />

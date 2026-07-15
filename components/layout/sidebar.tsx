@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,7 +9,6 @@ import {
   Map,
   BarChart3,
   Settings,
-  Droplets,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -27,9 +27,14 @@ export default function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface md:flex">
       <div className="flex items-center gap-2.5 px-6 py-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Droplets className="h-5 w-5" strokeWidth={2.25} />
-        </div>
+        <Image
+          src="/pwa-logo.jpg"
+          alt="VAMS"
+          width={40}
+          height={40}
+          className="rounded-full"
+          priority
+        />
         <div>
           <div className="text-sm font-bold leading-tight text-foreground">VAMS</div>
           <div className="text-[11px] leading-tight text-muted-foreground">เขต 10</div>

@@ -1,12 +1,11 @@
-import { Droplets, UserRound } from "lucide-react";
+import Image from "next/image";
+import { UserRound } from "lucide-react";
 
 export default function Navbar() {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface/80 px-5 py-3.5 backdrop-blur supports-[backdrop-filter]:bg-surface/60 md:px-8">
       <div className="flex items-center gap-2.5 md:hidden">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Droplets className="h-4 w-4" strokeWidth={2.25} />
-        </div>
+        <Image src="/pwa-logo.jpg" alt="VAMS" width={32} height={32} className="rounded-full" priority />
         <span className="text-sm font-bold text-foreground">VAMS</span>
       </div>
 
