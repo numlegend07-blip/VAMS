@@ -55,7 +55,13 @@ export interface Profile {
   branch: Pick<Branch, "id" | "name"> | null;
 }
 
-export type PMType = "ตรวจสอบ" | "ซ่อมบำรุง" | "เปลี่ยนอะไหล่";
+export type PMType =
+  | "ตรวจสอบประจำปี"
+  | "ซ่อมบำรุงตามกำหนด"
+  | "ซ่อมฉุกเฉิน"
+  | "เปลี่ยนชิ้นส่วน"
+  | "ปรับตั้งค่า"
+  | "ทดสอบการทำงาน";
 
 export interface PMRecord {
   id: string;
@@ -66,6 +72,24 @@ export interface PMRecord {
   pm_type: PMType;
   photo_before_url: string | null;
   photo_after_url: string | null;
+
+  pressure_in: number | null;
+  pressure_out: number | null;
+  set_point_original: number | null;
+  set_point_adjusted: number | null;
+  condition_found: string | null;
+  work_performed: string | null;
+  parts_used: string | null;
+  next_due_at: string | null;
+  status_after: ValveStatus | null;
+
   created_by: string | null;
+  created_by_name: string | null;
   created_at: string;
+}
+
+export interface PMRecordWithValve extends PMRecord {
+  valve: Pick<Valve, "id" | "asset_code" | "location" | "branch_id" | "status"> & {
+    branch: Pick<Branch, "id" | "name">;
+  };
 }

@@ -6,9 +6,8 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { PMType } from "@/types";
+import { PM_TYPES } from "@/lib/pm-type";
 import { cn } from "@/lib/utils";
-
-const PM_TYPES: PMType[] = ["ตรวจสอบ", "ซ่อมบำรุง", "เปลี่ยนอะไหล่"];
 
 type Props = {
   valveId: string;
@@ -21,7 +20,7 @@ export default function PMForm({ valveId, onDone }: Props) {
     new Date().toISOString().slice(0, 10)
   );
   const [title, setTitle] = useState("");
-  const [pmType, setPmType] = useState<PMType>("ตรวจสอบ");
+  const [pmType, setPmType] = useState<PMType>(PM_TYPES[0]);
   const [description, setDescription] = useState("");
   const [beforeFile, setBeforeFile] = useState<File | null>(null);
   const [afterFile, setAfterFile] = useState<File | null>(null);

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Map,
   ClipboardList,
+  History,
   BarChart3,
   Settings,
   Building2,
@@ -14,6 +15,8 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Profile } from "@/types";
+
+const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history"];
 
 type NavItem = {
   label: string;
@@ -37,7 +40,8 @@ const sections: NavSection[] = [
   {
     label: "รายงาน & ติดตาม",
     items: [
-      { label: "บันทึกซ่อมบำรุง (PM)", href: null, icon: ClipboardList },
+      { label: "บันทึกซ่อมบำรุง (PM)", href: "/valves/pm", icon: ClipboardList },
+      { label: "ประวัติการบำรุงรักษา", href: "/valves/history", icon: History },
       { label: "รายงาน", href: null, icon: BarChart3 },
     ],
   },
@@ -105,7 +109,8 @@ export default function Sidebar({ open = false, onClose, profile }: Props) {
                 const active =
                   item.href === "/valves"
                     ? pathname === "/valves" ||
-                      (pathname.startsWith("/valves/") && !pathname.startsWith("/valves/map"))
+                      (pathname.startsWith("/valves/") &&
+                        !RESERVED_SUBROUTES.some((route) => pathname.startsWith(route)))
                     : item.href !== null && pathname.startsWith(item.href);
 
                 if (!item.href) {

@@ -1,29 +1,9 @@
 import { Wrench } from "lucide-react";
 
-import { PMRecord, PMType } from "@/types";
+import { PMRecord } from "@/types";
+import { PM_TYPE_STYLES, PM_TYPE_DOT } from "@/lib/pm-type";
+import { formatThaiDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-
-const PM_TYPE_STYLES: Record<PMType, string> = {
-  ตรวจสอบ: "bg-primary-subtle text-primary",
-  ซ่อมบำรุง: "bg-danger-subtle text-danger",
-  เปลี่ยนอะไหล่: "bg-warning-subtle text-warning",
-};
-
-const PM_TYPE_DOT: Record<PMType, string> = {
-  ตรวจสอบ: "bg-primary",
-  ซ่อมบำรุง: "bg-danger",
-  เปลี่ยนอะไหล่: "bg-warning",
-};
-
-function formatThaiDate(dateStr: string) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("th-TH", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    calendar: "buddhist",
-  });
-}
 
 type Props = {
   records: PMRecord[];

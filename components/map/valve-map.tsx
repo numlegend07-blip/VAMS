@@ -7,30 +7,12 @@ import "leaflet/dist/leaflet.css";
 
 import { ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
-
-const STATUS_COLORS: Record<string, string> = {
-  ใช้งาน: "#10b981",
-  ไม่ได้ใช้งาน: "#ef4444",
-  ไม่ระบุ: "#8b5cf6",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  ใช้งาน: "✅ ใช้งานปกติ",
-  ไม่ได้ใช้งาน: "🔴 ไม่ได้ใช้งาน",
-  ไม่ระบุ: "🟣 ไม่ระบุสถานะ",
-};
-
-const STATUS_TEXT_COLOR: Record<string, string> = {
-  ใช้งาน: "text-success",
-  ไม่ได้ใช้งาน: "text-danger",
-  ไม่ระบุ: "text-purple",
-};
-
-const STATUS_BORDER_COLOR: Record<string, string> = {
-  ใช้งาน: "border-success",
-  ไม่ได้ใช้งาน: "border-danger",
-  ไม่ระบุ: "border-purple",
-};
+import {
+  STATUS_COLORS,
+  STATUS_LABEL,
+  STATUS_TEXT_COLOR,
+  STATUS_BORDER_COLOR,
+} from "@/lib/valve-status";
 
 const LIGHT_TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 const DARK_TILES = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";

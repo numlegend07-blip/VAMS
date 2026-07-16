@@ -11,7 +11,11 @@ import { Profile } from "@/types";
 const TITLES: Record<string, string> = {
   "/valves": "แดชบอร์ดภาพรวม",
   "/valves/map": "แผนที่จุดติดตั้ง",
+  "/valves/pm": "บันทึกข้อมูลการบำรุงรักษา",
+  "/valves/history": "ประวัติการบำรุงรักษา",
 };
+
+const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history"];
 
 type Props = {
   onMenuClick?: () => void;
@@ -24,7 +28,7 @@ export default function Navbar({ onMenuClick, profile }: Props) {
 
   const title =
     TITLES[pathname] ??
-    (pathname.startsWith("/valves/") && !pathname.startsWith("/valves/map")
+    (pathname.startsWith("/valves/") && !RESERVED_SUBROUTES.some((route) => pathname.startsWith(route))
       ? "รายละเอียดวาล์ว"
       : "VAMS");
 
