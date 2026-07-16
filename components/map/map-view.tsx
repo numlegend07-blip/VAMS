@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MapIcon, ChevronDown, Building2 } from "lucide-react";
 
 import ValveMapClient from "@/components/map/valve-map-client";
+import AddValveModal from "@/components/map/add-valve-modal";
 import { Branch, ValveWithBranch } from "@/types";
 
 const STATUS_LEGEND = [
@@ -76,6 +77,8 @@ export default function MapView({ valves, branches }: Props) {
               strokeWidth={2.25}
             />
           </div>
+
+          <AddValveModal branches={branches} />
         </div>
       </div>
 
