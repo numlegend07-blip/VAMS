@@ -31,7 +31,7 @@ type Props = {
 
 export default function PMTimeline({ records }: Props) {
   return (
-    <div className="mt-6 rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="mt-6 rounded-xl border border-border bg-surface p-6 shadow-sm">
       <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
         <Wrench className="h-4 w-4 text-muted-foreground" strokeWidth={2.25} />
         ประวัติ PM

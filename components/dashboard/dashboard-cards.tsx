@@ -16,14 +16,8 @@ export default function DashboardCards({ valves }: Props) {
   const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
 
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      <Card
-        title="จำนวนวาล์ว"
-        value={String(total)}
-        sub="ทั้งหมดในเขต 10"
-        icon={Gauge}
-        color="primary"
-      />
+    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <Card title="จำนวนวาล์ว" value={String(total)} sub="ทั้งหมดในเขต 10" icon={Gauge} color="primary" />
 
       <Card
         title="ใช้งาน"
@@ -46,37 +40,17 @@ export default function DashboardCards({ valves }: Props) {
         value={String(unknown)}
         sub={`${pct(unknown)}% ของทั้งหมด`}
         icon={HelpCircle}
-        color="neutral"
+        color="purple"
       />
     </div>
   );
 }
 
 const COLOR_STYLES = {
-  primary: {
-    wash: "from-primary/15 via-primary/5 to-transparent",
-    badge: "bg-primary text-primary-foreground shadow-primary/30",
-    glow: "bg-primary/20",
-    ring: "group-hover:ring-primary/25",
-  },
-  success: {
-    wash: "from-success/15 via-success/5 to-transparent",
-    badge: "bg-success text-white shadow-success/30",
-    glow: "bg-success/20",
-    ring: "group-hover:ring-success/25",
-  },
-  danger: {
-    wash: "from-danger/15 via-danger/5 to-transparent",
-    badge: "bg-danger text-white shadow-danger/30",
-    glow: "bg-danger/20",
-    ring: "group-hover:ring-danger/25",
-  },
-  neutral: {
-    wash: "from-neutral/15 via-neutral/5 to-transparent",
-    badge: "bg-neutral text-white shadow-neutral/30",
-    glow: "bg-neutral/20",
-    ring: "group-hover:ring-neutral/25",
-  },
+  primary: { text: "text-primary", badge: "bg-primary-subtle text-primary", blob: "bg-primary/7" },
+  success: { text: "text-success", badge: "bg-success-subtle text-success", blob: "bg-success/7" },
+  danger: { text: "text-danger", badge: "bg-danger-subtle text-danger", blob: "bg-danger/7" },
+  purple: { text: "text-purple", badge: "bg-purple-subtle text-purple", blob: "bg-purple/7" },
 } as const;
 
 function Card({
@@ -95,24 +69,21 @@ function Card({
   const s = COLOR_STYLES[color];
 
   return (
-    <div
-      className={`group relative overflow-hidden rounded-2xl border border-border bg-surface p-5 shadow-sm ring-1 ring-transparent transition-all hover:-translate-y-0.5 hover:shadow-lg ${s.ring}`}
-    >
-      <div className={`pointer-events-none absolute inset-0 bg-linear-to-br ${s.wash}`} />
-      <div className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl ${s.glow}`} />
+    <div className="relative overflow-hidden rounded-xl border border-border bg-surface p-4.5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div
+        className={`pointer-events-none absolute -right-5 -top-5 h-22.5 w-22.5 rounded-full ${s.blob}`}
+      />
+
+      <span className={`absolute right-3.5 top-3.5 flex h-9.5 w-9.5 items-center justify-center rounded-lg ${s.badge}`}>
+        <Icon className="h-5 w-5" strokeWidth={2.25} />
+      </span>
 
       <div className="relative">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-xl shadow-lg ${s.badge}`}>
-          <Icon className="h-5 w-5" strokeWidth={2.25} />
-        </div>
-
-        <div className="mt-4 text-sm font-medium text-muted-foreground">{title}</div>
-
-        <div className="mt-1 text-4xl font-extrabold tracking-tight text-foreground">
+        <div className="text-[11px] font-bold tracking-wide text-muted-foreground">{title}</div>
+        <div className={`font-display mt-1.5 text-[34px] font-extrabold leading-none ${s.text}`}>
           {value}
         </div>
-
-        <div className="mt-1.5 text-xs font-medium text-muted-foreground">{sub}</div>
+        <div className="mt-1.5 text-[11px] font-medium text-muted-foreground">{sub}</div>
       </div>
     </div>
   );

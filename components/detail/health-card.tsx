@@ -17,7 +17,7 @@ export default function HealthCard({
         : { text: "text-danger", bar: "bg-danger", subtle: "bg-danger-subtle" };
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg", tone.subtle)}>
@@ -25,7 +25,7 @@ export default function HealthCard({
           </span>
           Health Score
         </div>
-        <span className={cn("text-3xl font-bold", tone.text)}>{score}%</span>
+        <span className={cn("font-display text-3xl font-bold", tone.text)}>{score}%</span>
       </div>
 
       <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-muted">

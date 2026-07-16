@@ -35,14 +35,14 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
         กลับไปหน้ารายการ
       </Link>
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm md:p-8">
+      <div className="rounded-xl border border-border bg-surface p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-primary-subtle text-primary sm:h-28 sm:w-28">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-primary-subtle text-primary sm:h-28 sm:w-28">
             <Settings2 className="h-11 w-11" strokeWidth={1.75} />
           </div>
 
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+            <h1 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
               {valve.asset_code || valve.id.slice(0, 8).toUpperCase()}
             </h1>
 
@@ -56,14 +56,14 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
                 active
                   ? "bg-success-subtle text-success"
                   : valve.status === "ไม่ระบุ"
-                    ? "bg-neutral-subtle text-neutral"
+                    ? "bg-purple-subtle text-purple"
                     : "bg-danger-subtle text-danger"
               )}
             >
               <span
                 className={cn(
                   "h-1.5 w-1.5 rounded-full",
-                  active ? "bg-success" : valve.status === "ไม่ระบุ" ? "bg-neutral" : "bg-danger"
+                  active ? "bg-success" : valve.status === "ไม่ระบุ" ? "bg-purple" : "bg-danger"
                 )}
               />
               {valve.status}
@@ -99,14 +99,14 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
           </div>
 
           {valve.status !== "ใช้งาน" && valve.inactive_reason && (
-            <div className="mt-4 rounded-xl border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
+            <div className="mt-4 rounded-lg border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
               <span className="font-medium text-foreground">เหตุผลที่ไม่ได้ใช้งาน: </span>
               {valve.inactive_reason}
             </div>
           )}
 
           {valve.remark && (
-            <div className="mt-4 rounded-xl border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
+            <div className="mt-4 rounded-lg border border-border bg-surface-muted p-4 text-sm text-muted-foreground">
               <span className="font-medium text-foreground">หมายเหตุ: </span>
               {valve.remark}
             </div>
@@ -125,7 +125,7 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
               ) : (
                 <button
                   onClick={() => setShowPMForm(true)}
-                  className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary"
+                  className="mt-4 flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.25} />
                   เพิ่มบันทึก PM

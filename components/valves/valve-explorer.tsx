@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { ListFilter } from "lucide-react";
 
 import SearchBox from "@/components/search/search-box";
 import ValveTable from "@/components/valves/valve-table";
+import CardHeader from "@/components/ui/card-header";
 import { ValveWithBranch } from "@/types";
 
 type Props = {
@@ -25,17 +27,20 @@ export default function ValveExplorer({ valves }: Props) {
   });
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-6">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-base font-semibold text-foreground">
-          รายการ Control Valve
-        </h2>
-        <div className="sm:w-80">
-          <SearchBox value={search} onChange={setSearch} />
-        </div>
-      </div>
+    <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+      <CardHeader
+        icon={ListFilter}
+        title="รายการ Control Valve"
+        action={
+          <div className="w-44 sm:w-72">
+            <SearchBox value={search} onChange={setSearch} />
+          </div>
+        }
+      />
 
-      <ValveTable valves={filteredValves} />
+      <div className="p-4.5">
+        <ValveTable valves={filteredValves} />
+      </div>
     </div>
   );
 }

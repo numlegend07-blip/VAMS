@@ -17,7 +17,7 @@ export default function ThemeToggle() {
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label="สลับโหมดมืด/สว่าง"
-      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground"
+      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground/70 transition-colors hover:border-primary hover:text-primary"
     >
       {mounted && (isDark ? (
         <Sun className="h-4 w-4" strokeWidth={2.25} />

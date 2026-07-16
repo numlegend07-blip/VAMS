@@ -91,7 +91,7 @@ export default function PMForm({ valveId, onDone }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-6 rounded-2xl border border-border bg-surface p-6 shadow-sm"
+      className="mt-6 rounded-xl border border-border bg-surface p-6 shadow-sm"
     >
       <h3 className="text-base font-semibold text-foreground">เพิ่มบันทึก PM</h3>
 
@@ -169,7 +169,7 @@ export default function PMForm({ valveId, onDone }: Props) {
           type="submit"
           disabled={submitting}
           className={cn(
-            "flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover",
+            "flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover",
             submitting && "opacity-70"
           )}
         >
@@ -179,7 +179,7 @@ export default function PMForm({ valveId, onDone }: Props) {
         <button
           type="button"
           onClick={onDone}
-          className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-surface-muted"
+          className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-muted"
         >
           ยกเลิก
         </button>

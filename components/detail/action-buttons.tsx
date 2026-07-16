@@ -9,7 +9,7 @@ type Props = {
 
 export default function ActionButtons({ onPMClick, pmActive }: Props) {
   const baseStyle =
-    "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors";
+    "flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors";
 
   return (
     <div className="flex flex-wrap gap-3">

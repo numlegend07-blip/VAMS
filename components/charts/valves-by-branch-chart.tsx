@@ -1,5 +1,6 @@
 "use client";
 
+import { BarChart3 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -11,11 +12,12 @@ import {
 } from "recharts";
 
 import { Branch, ValveWithBranch } from "@/types";
+import CardHeader from "@/components/ui/card-header";
 
 const STATUS_COLORS = {
-  ใช้งาน: "#0ca30c",
-  ไม่ได้ใช้งาน: "#d03b3b",
-  ไม่ระบุ: "#94a3b8",
+  ใช้งาน: "#10b981",
+  ไม่ได้ใช้งาน: "#ef4444",
+  ไม่ระบุ: "#8b5cf6",
 };
 
 type Props = {
@@ -37,25 +39,26 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
   });
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-foreground">
-          ข้อมูลแยกรายสาขา ({branches.length} สาขา)
-        </h2>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          {(Object.keys(STATUS_COLORS) as Array<keyof typeof STATUS_COLORS>).map((key) => (
-            <span key={key} className="flex items-center gap-1.5">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: STATUS_COLORS[key] }}
-              />
-              {key}
-            </span>
-          ))}
-        </div>
-      </div>
+    <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+      <CardHeader
+        icon={BarChart3}
+        title={`ข้อมูลแยกรายสาขา (${branches.length} สาขา)`}
+        action={
+          <div className="hidden items-center gap-3.5 text-xs text-muted-foreground sm:flex">
+            {(Object.keys(STATUS_COLORS) as Array<keyof typeof STATUS_COLORS>).map((key) => (
+              <span key={key} className="flex items-center gap-1.5">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ background: STATUS_COLORS[key] }}
+                />
+                {key}
+              </span>
+            ))}
+          </div>
+        }
+      />
 
-      <div style={{ width: "100%", height: 360 }}>
+      <div className="p-4.5" style={{ width: "100%", height: 360 }}>
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 4, right: 8, bottom: 60, left: 0 }}>
             <CartesianGrid vertical={false} stroke="var(--border)" />

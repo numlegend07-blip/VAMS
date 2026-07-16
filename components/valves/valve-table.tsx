@@ -21,17 +21,17 @@ export default function ValveTable({ valves }: ValveTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
+    <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-border bg-surface-muted">
-            <th className="px-4 py-3 font-medium text-muted-foreground">รหัส</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">สาขา</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">ชนิด</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">ยี่ห้อ</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">ขนาด</th>
-            <th className="px-4 py-3 font-medium text-muted-foreground">สถานะ</th>
-            <th className="px-4 py-3" />
+            <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">รหัส</th>
+            <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">สาขา</th>
+            <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">ชนิด</th>
+            <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">ยี่ห้อ</th>
+            <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">ขนาด</th>
+            <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">สถานะ</th>
+            <th className="px-4 py-2.5" />
           </tr>
         </thead>
 
@@ -74,13 +74,13 @@ export default function ValveTable({ valves }: ValveTableProps) {
 const STATUS_STYLES: Record<ValveStatus, string> = {
   ใช้งาน: "bg-success-subtle text-success",
   ไม่ได้ใช้งาน: "bg-danger-subtle text-danger",
-  ไม่ระบุ: "bg-neutral-subtle text-neutral",
+  ไม่ระบุ: "bg-purple-subtle text-purple",
 };
 
 const STATUS_DOT: Record<ValveStatus, string> = {
   ใช้งาน: "bg-success",
   ไม่ได้ใช้งาน: "bg-danger",
-  ไม่ระบุ: "bg-neutral",
+  ไม่ระบุ: "bg-purple",
 };
 
 function StatusBadge({ status }: { status: ValveStatus }) {

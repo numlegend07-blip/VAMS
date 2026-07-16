@@ -9,15 +9,15 @@ import { ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string, string> = {
-  ใช้งาน: "#0ca30c",
-  ไม่ได้ใช้งาน: "#d03b3b",
-  ไม่ระบุ: "#94a3b8",
+  ใช้งาน: "#10b981",
+  ไม่ได้ใช้งาน: "#ef4444",
+  ไม่ระบุ: "#8b5cf6",
 };
 
 const STATUS_STYLES: Record<string, string> = {
   ใช้งาน: "bg-success-subtle text-success",
   ไม่ได้ใช้งาน: "bg-danger-subtle text-danger",
-  ไม่ระบุ: "bg-neutral-subtle text-neutral",
+  ไม่ระบุ: "bg-purple-subtle text-purple",
 };
 
 const LIGHT_TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";

@@ -1,12 +1,14 @@
 "use client";
 
+import { PieChart as PieChartIcon } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { ValveWithBranch } from "@/types";
+import CardHeader from "@/components/ui/card-header";
 
 const STATUS_COLORS: Record<string, string> = {
-  ใช้งาน: "#0ca30c",
-  ไม่ได้ใช้งาน: "#d03b3b",
-  ไม่ระบุ: "#898781",
+  ใช้งาน: "#10b981",
+  ไม่ได้ใช้งาน: "#ef4444",
+  ไม่ระบุ: "#8b5cf6",
 };
 
 type Props = {
@@ -27,12 +29,10 @@ export default function ValveStatusChart({ valves }: Props) {
     .filter((entry) => entry.value > 0);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-6">
-      <h2 className="text-base font-semibold text-foreground">
-        สถานะวาล์ว
-      </h2>
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+      <CardHeader icon={PieChartIcon} color="warning" title="สัดส่วนสถานะวาล์ว" />
 
-      <div className="relative mt-2 flex-1" style={{ minHeight: 220 }}>
+      <div className="relative flex-1 p-4.5" style={{ minHeight: 220 }}>
         <ResponsiveContainer>
           <PieChart>
             <Pie
@@ -67,12 +67,12 @@ export default function ValveStatusChart({ valves }: Props) {
         </ResponsiveContainer>
 
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-foreground">{total}</span>
+          <span className="font-display text-2xl font-bold text-foreground">{total}</span>
           <span className="text-xs text-muted-foreground">วาล์วทั้งหมด</span>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs">
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4.5 pb-4.5 text-xs">
         {data.map((entry) => (
           <span key={entry.name} className="flex items-center gap-1.5 text-muted-foreground">
             <span
