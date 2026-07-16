@@ -162,6 +162,10 @@
   background: #94a3b8;
 }
 
+.leaflet-container {
+  z-index: 0;
+}
+
 .leaflet-popup-content-wrapper {
   background: var(--surface) !important;
   color: var(--foreground) !important;
