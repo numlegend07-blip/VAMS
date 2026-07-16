@@ -1,9 +1,12 @@
 import AppShell from "@/components/layout/app-shell";
+import { getCurrentProfile } from "@/lib/data/profile";
 
-export default function ValvesLayout({
+export default async function ValvesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell>{children}</AppShell>;
+  const profile = await getCurrentProfile();
+
+  return <AppShell profile={profile}>{children}</AppShell>;
 }

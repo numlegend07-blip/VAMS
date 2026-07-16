@@ -42,6 +42,19 @@ export interface ValveWithBranch extends Valve {
   branch: Pick<Branch, "id" | "name">;
 }
 
+export type ProfileRole = "region_admin" | "branch_staff";
+
+export interface Profile {
+  id: string;
+  employee_code: string | null;
+  full_name: string | null;
+  position: string | null;
+  department: string | null;
+  role: ProfileRole;
+  branch_id: string | null;
+  branch: Pick<Branch, "id" | "name"> | null;
+}
+
 export type PMType = "ตรวจสอบ" | "ซ่อมบำรุง" | "เปลี่ยนอะไหล่";
 
 export interface PMRecord {

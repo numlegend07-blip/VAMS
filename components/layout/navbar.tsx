@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { Menu, RotateCw, UserRound } from "lucide-react";
+import { Menu, RotateCw, UserRound, LogOut } from "lucide-react";
 
 import ThemeToggle from "./theme-toggle";
 import Clock from "./clock";
+import { createClient } from "@/lib/supabase/client";
+import { Profile } from "@/types";
 
 const TITLES: Record<string, string> = {
   "/valves": "แดชบอร์ดภาพรวม",
@@ -13,9 +15,10 @@ const TITLES: Record<string, string> = {
 
 type Props = {
   onMenuClick?: () => void;
+  profile: Profile | null;
 };
 
-export default function Navbar({ onMenuClick }: Props) {
+export default function Navbar({ onMenuClick, profile }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -24,6 +27,13 @@ export default function Navbar({ onMenuClick }: Props) {
     (pathname.startsWith("/valves/") && !pathname.startsWith("/valves/map")
       ? "รายละเอียดวาล์ว"
       : "VAMS");
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface px-4 md:px-5">
@@ -57,11 +67,27 @@ export default function Navbar({ onMenuClick }: Props) {
 
         <ThemeToggle />
 
-        <div className="ml-1 flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-subtle text-primary">
+        <div className="ml-1 flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-2">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary">
             <UserRound className="h-4 w-4" strokeWidth={2.25} />
           </div>
-          <span className="hidden text-xs font-medium text-foreground sm:inline">Admin</span>
+          <div className="hidden leading-tight sm:block">
+            <div className="max-w-32 truncate text-xs font-semibold text-foreground">
+              {profile?.full_name ?? "ผู้ใช้งาน"}
+            </div>
+            <div className="max-w-32 truncate text-[10px] text-muted-foreground">
+              {profile?.role === "region_admin" ? "เขต 10" : profile?.branch?.name ?? "-"}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="ออกจากระบบ"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger"
+          >
+            <LogOut className="h-3.75 w-3.75" strokeWidth={2.25} />
+          </button>
         </div>
       </div>
     </header>

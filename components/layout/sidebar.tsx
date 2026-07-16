@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Profile } from "@/types";
 
 type NavItem = {
   label: string;
@@ -49,9 +50,10 @@ const sections: NavSection[] = [
 type Props = {
   open?: boolean;
   onClose?: () => void;
+  profile: Profile | null;
 };
 
-export default function Sidebar({ open = false, onClose }: Props) {
+export default function Sidebar({ open = false, onClose, profile }: Props) {
   const pathname = usePathname();
 
   return (
@@ -152,9 +154,13 @@ export default function Sidebar({ open = false, onClose }: Props) {
             </span>
             <div className="min-w-0">
               <div className="truncate text-xs font-bold text-foreground">
-                การประปาส่วนภูมิภาค
+                {profile?.role === "region_admin"
+                  ? "การประปาส่วนภูมิภาค เขต 10"
+                  : (profile?.branch?.name ?? "การประปาส่วนภูมิภาค")}
               </div>
-              <div className="truncate text-[10px] text-muted-foreground">เขต 10 · 26 สาขา</div>
+              <div className="truncate text-[10px] text-muted-foreground">
+                {profile?.role === "region_admin" ? "ภาพรวมทุกสาขา" : "เขต 10"}
+              </div>
             </div>
           </div>
         </div>

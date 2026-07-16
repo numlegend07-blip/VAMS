@@ -25,9 +25,25 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // refreshes the auth token cookie on every request; route protection
-  // is added once /login exists
-  await supabase.auth.getUser();
+  // refreshes the auth token cookie on every request
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname } = request.nextUrl;
+  const isLoginPage = pathname === "/login";
+
+  if (!user && !isLoginPage) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && isLoginPage) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/valves";
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 }
