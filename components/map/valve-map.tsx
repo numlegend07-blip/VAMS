@@ -14,10 +14,22 @@ const STATUS_COLORS: Record<string, string> = {
   ไม่ระบุ: "#8b5cf6",
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  ใช้งาน: "bg-success-subtle text-success",
-  ไม่ได้ใช้งาน: "bg-danger-subtle text-danger",
-  ไม่ระบุ: "bg-purple-subtle text-purple",
+const STATUS_LABEL: Record<string, string> = {
+  ใช้งาน: "✅ ใช้งานปกติ",
+  ไม่ได้ใช้งาน: "🔴 ไม่ได้ใช้งาน",
+  ไม่ระบุ: "🟣 ไม่ระบุสถานะ",
+};
+
+const STATUS_TEXT_COLOR: Record<string, string> = {
+  ใช้งาน: "text-success",
+  ไม่ได้ใช้งาน: "text-danger",
+  ไม่ระบุ: "text-purple",
+};
+
+const STATUS_BORDER_COLOR: Record<string, string> = {
+  ใช้งาน: "border-success",
+  ไม่ได้ใช้งาน: "border-danger",
+  ไม่ระบุ: "border-purple",
 };
 
 const LIGHT_TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
@@ -77,51 +89,46 @@ export default function ValveMap({ valves }: Props) {
             fillOpacity: 1,
           }}
         >
-          <Popup minWidth={240} maxWidth={280}>
+          <Popup minWidth={220} maxWidth={280}>
             <div className="text-foreground">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="text-base font-bold text-foreground">
-                    {valve.asset_code || valve.id.slice(0, 8).toUpperCase()}
-                  </div>
-                  <div className="text-xs font-medium text-primary">
-                    {valve.brand} {valve.model ?? ""} · {valve.valve_type}
-                  </div>
-                </div>
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                    STATUS_STYLES[valve.status] ?? STATUS_STYLES["ไม่ระบุ"]
+              <div
+                className={cn(
+                  "mb-2 border-b-2 pb-1.5 text-sm font-extrabold",
+                  STATUS_BORDER_COLOR[valve.status] ?? STATUS_BORDER_COLOR["ไม่ระบุ"]
+                )}
+              >
+                🔧 {valve.asset_code || valve.id.slice(0, 8).toUpperCase()}
+              </div>
+
+              <div className="mb-2 text-xs font-bold text-foreground">
+                {valve.location ?? "ไม่ระบุตำแหน่ง"}
+              </div>
+
+              <table className="w-full border-collapse text-[11.5px]">
+                <tbody>
+                  <SpecRow label="สาขา" value={valve.branch.name} valueClassName="font-bold text-primary" />
+                  <SpecRow label="ชนิด" value={valve.valve_type || "-"} />
+                  <SpecRow
+                    label="ยี่ห้อ/ขนาด"
+                    value={`${valve.brand || "-"}${valve.size_mm ? ` ${valve.size_mm} มม.` : ""}`}
+                  />
+                  <SpecRow label="ปีติดตั้ง" value={valve.install_year_be ? String(valve.install_year_be) : "-"} />
+                  <SpecRow label="รหัสพัสดุ" value={valve.asset_code || "-"} />
+                  <SpecRow label="ตรวจล่าสุด" value="ยังไม่ตรวจ" />
+                  <SpecRow
+                    label="สถานะ"
+                    value={STATUS_LABEL[valve.status] ?? "-"}
+                    valueClassName={cn("font-extrabold", STATUS_TEXT_COLOR[valve.status])}
+                  />
+                  {valve.status !== "ใช้งาน" && valve.inactive_reason && (
+                    <SpecRow label="เหตุผล" value={valve.inactive_reason} valueClassName="font-semibold text-warning" />
                   )}
-                >
-                  {valve.status}
-                </span>
-              </div>
-
-              <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-                <div>📍 {valve.location ?? "ไม่ระบุตำแหน่ง"}</div>
-                <div>🏢 {valve.branch.name}</div>
-                <div>📅 ปีติดตั้ง {valve.install_year_be ?? "-"}</div>
-              </div>
-
-              <div className="mt-2.5 grid grid-cols-2 gap-1.5 border-t border-border pt-2.5">
-                <SpecMini label="Pressure In" value={valve.pressure_in != null ? `${valve.pressure_in} bar` : "-"} />
-                <SpecMini label="Pressure Out" value={valve.pressure_out != null ? `${valve.pressure_out} bar` : "-"} />
-                <SpecMini label="Flow Rate" value={valve.flow_rate != null ? `${valve.flow_rate}` : "-"} />
-                <SpecMini label="ขนาด" value={valve.size_mm != null ? `${valve.size_mm} mm` : "-"} />
-              </div>
-
-              {valve.status !== "ใช้งาน" && valve.inactive_reason && (
-                <div className="mt-2 rounded-md bg-surface-muted px-2 py-1.5 text-[11px] text-muted-foreground">
-                  <span className="font-medium text-foreground">เหตุผล: </span>
-                  {valve.inactive_reason}
-                </div>
-              )}
+                </tbody>
+              </table>
 
               {valve.remark && (
-                <div className="mt-1.5 rounded-md bg-surface-muted px-2 py-1.5 text-[11px] text-muted-foreground">
-                  <span className="font-medium text-foreground">หมายเหตุ: </span>
-                  {valve.remark}
+                <div className="mt-1.5 text-[11px] italic text-muted-foreground">
+                  หมายเหตุ: {valve.remark}
                 </div>
               )}
             </div>
@@ -132,11 +139,19 @@ export default function ValveMap({ valves }: Props) {
   );
 }
 
-function SpecMini({ label, value }: { label: string; value: string }) {
+function SpecRow({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
   return (
-    <div>
-      <div className="text-[10px] text-muted-foreground">{label}</div>
-      <div className="text-xs font-semibold text-foreground">{value}</div>
-    </div>
+    <tr>
+      <td className="py-0.5 pr-3 align-top text-muted-foreground">{label}</td>
+      <td className={cn("py-0.5 align-top font-semibold text-foreground", valueClassName)}>{value}</td>
+    </tr>
   );
 }
