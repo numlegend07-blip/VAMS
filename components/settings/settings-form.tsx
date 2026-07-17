@@ -32,8 +32,12 @@ export default function SettingsForm({ branches, settings }: Props) {
   const router = useRouter();
 
   const [regionChatId, setRegionChatId] = useState(settings.telegram_region_chat_id ?? "");
+  const [regionInviteLink, setRegionInviteLink] = useState(settings.telegram_region_invite_link ?? "");
   const [chatIds, setChatIds] = useState<Record<string, string>>(
     Object.fromEntries(branches.map((b) => [b.id, b.telegram_chat_id ?? ""]))
+  );
+  const [inviteLinks, setInviteLinks] = useState<Record<string, string>>(
+    Object.fromEntries(branches.map((b) => [b.id, b.telegram_invite_link ?? ""]))
   );
 
   const [saving, setSaving] = useState(false);
@@ -80,7 +84,10 @@ export default function SettingsForm({ branches, settings }: Props) {
 
       const { error: settingsError } = await supabase
         .from("app_settings")
-        .update({ telegram_region_chat_id: regionChatId.trim() || null })
+        .update({
+          telegram_region_chat_id: regionChatId.trim() || null,
+          telegram_region_invite_link: regionInviteLink.trim() || null,
+        })
         .eq("id", 1);
       if (settingsError) throw new Error(settingsError.message);
 
@@ -88,7 +95,10 @@ export default function SettingsForm({ branches, settings }: Props) {
         branches.map((b) =>
           supabase
             .from("branches")
-            .update({ telegram_chat_id: chatIds[b.id]?.trim() || null })
+            .update({
+              telegram_chat_id: chatIds[b.id]?.trim() || null,
+              telegram_invite_link: inviteLinks[b.id]?.trim() || null,
+            })
             .eq("id", b.id)
         )
       );
@@ -160,23 +170,32 @@ export default function SettingsForm({ branches, settings }: Props) {
           <p>2. เพิ่มบอทเข้ากลุ่ม Telegram ของแต่ละสาขา (และกลุ่มกลางของเขต 10)</p>
           <p>3. หา Chat ID ของกลุ่ม: เพิ่ม <span className="font-semibold text-foreground">@RawDataBot</span> เข้ากลุ่มชั่วคราว บอทจะตอบกลับ Chat ID (ตัวเลขติดลบ เช่น -1001234567890) แล้วเอาบอทออกได้เลย</p>
           <p>4. นำ Chat ID มากรอกในแบบฟอร์มด้านล่าง แล้วกด &quot;ทดสอบ&quot; เพื่อเช็กว่าเชื่อมต่อถูกต้อง</p>
+          <p>5. (ไม่บังคับ) หาลิงก์เชิญเข้ากลุ่ม: เปิดกลุ่ม → แตะชื่อกลุ่ม → &quot;Invite Link&quot; หรือ &quot;เชิญผ่านลิงก์&quot; → คัดลอกลิงก์ (ขึ้นต้นด้วย https://t.me/+) มากรอกไว้ พนักงานจะกดลิงก์หรือสแกน QR เข้ากลุ่มเองได้จากหน้าแดชบอร์ด ไม่ต้องเชิญทีละคน</p>
         </div>
       </div>
 
       <div className="rounded-xl border border-border bg-surface shadow-sm">
         <CardHeader icon={Megaphone} color="purple" title="แชทกลางเขต 10" subtitle="รับสรุปภาพรวมทุกสาขาทุกวัน" />
-        <div className="flex flex-wrap items-center gap-2.5 px-4.5 py-4">
+        <div className="flex flex-col gap-2.5 px-4.5 py-4">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <input
+              value={regionChatId}
+              onChange={(e) => setRegionChatId(e.target.value)}
+              placeholder="Chat ID เช่น -1001234567890"
+              className={inputClass}
+            />
+            <TestButton
+              disabled={!regionChatId.trim()}
+              testing={testingKey === "region"}
+              result={testResults["region"]}
+              onClick={() => handleTest(regionChatId, "เขต 10 (สรุปรวม)", "region")}
+            />
+          </div>
           <input
-            value={regionChatId}
-            onChange={(e) => setRegionChatId(e.target.value)}
-            placeholder="เช่น -1001234567890"
+            value={regionInviteLink}
+            onChange={(e) => setRegionInviteLink(e.target.value)}
+            placeholder="ลิงก์เชิญเข้ากลุ่ม เช่น https://t.me/+xxxxxxxxxxxx"
             className={inputClass}
-          />
-          <TestButton
-            disabled={!regionChatId.trim()}
-            testing={testingKey === "region"}
-            result={testResults["region"]}
-            onClick={() => handleTest(regionChatId, "เขต 10 (สรุปรวม)", "region")}
           />
         </div>
       </div>
@@ -188,22 +207,30 @@ export default function SettingsForm({ branches, settings }: Props) {
             <div
               key={b.id}
               className={cn(
-                "flex flex-wrap items-center gap-2.5 px-4.5 py-2.5",
+                "flex flex-col gap-2 px-4.5 py-2.5",
                 i !== branches.length - 1 && "border-b border-border"
               )}
             >
-              <span className="w-40 shrink-0 truncate text-xs font-medium text-foreground">{b.name}</span>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="w-40 shrink-0 truncate text-xs font-medium text-foreground">{b.name}</span>
+                <input
+                  value={chatIds[b.id] ?? ""}
+                  onChange={(e) => setChatIds((prev) => ({ ...prev, [b.id]: e.target.value }))}
+                  placeholder="Chat ID (ไม่บังคับ)"
+                  className={cn(inputClass, "max-w-56")}
+                />
+                <TestButton
+                  disabled={!(chatIds[b.id] ?? "").trim()}
+                  testing={testingKey === b.id}
+                  result={testResults[b.id]}
+                  onClick={() => handleTest(chatIds[b.id] ?? "", b.name, b.id)}
+                />
+              </div>
               <input
-                value={chatIds[b.id] ?? ""}
-                onChange={(e) => setChatIds((prev) => ({ ...prev, [b.id]: e.target.value }))}
-                placeholder="Chat ID (ไม่บังคับ)"
-                className={cn(inputClass, "max-w-56")}
-              />
-              <TestButton
-                disabled={!(chatIds[b.id] ?? "").trim()}
-                testing={testingKey === b.id}
-                result={testResults[b.id]}
-                onClick={() => handleTest(chatIds[b.id] ?? "", b.name, b.id)}
+                value={inviteLinks[b.id] ?? ""}
+                onChange={(e) => setInviteLinks((prev) => ({ ...prev, [b.id]: e.target.value }))}
+                placeholder="ลิงก์เชิญเข้ากลุ่ม (ไม่บังคับ)"
+                className={cn(inputClass, "ml-0 sm:ml-42.5 max-w-72")}
               />
             </div>
           ))}

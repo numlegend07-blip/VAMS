@@ -3,11 +3,13 @@ export interface Branch {
   name: string;
   note: string | null;
   telegram_chat_id: string | null;
+  telegram_invite_link: string | null;
   created_at: string;
 }
 
 export interface AppSettings {
   telegram_region_chat_id: string | null;
+  telegram_region_invite_link: string | null;
 }
 
 export type ValveStatus = "ใช้งาน" | "ไม่ได้ใช้งาน" | "ไม่ระบุ";
