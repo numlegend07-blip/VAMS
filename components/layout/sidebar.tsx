@@ -23,6 +23,7 @@ type NavItem = {
   label: string;
   href: string | null;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  disabledBadge?: string;
 };
 
 type NavSection = {
@@ -49,7 +50,14 @@ function getSections(canManageSettings: boolean): NavSection[] {
     },
     {
       label: "ระบบ",
-      items: [{ label: "ตั้งค่า", href: canManageSettings ? "/valves/settings" : null, icon: Settings }],
+      items: [
+        {
+          label: "ตั้งค่า",
+          href: canManageSettings ? "/valves/settings" : null,
+          icon: Settings,
+          disabledBadge: "สำหรับผู้ดูแลระบบ",
+        },
+      ],
     },
   ];
 }
@@ -126,7 +134,7 @@ export default function Sidebar({ open = false, onClose, profile }: Props) {
                       <Icon className="h-4.25 w-4.25 shrink-0" strokeWidth={2} />
                       <span className="flex-1">{item.label}</span>
                       <span className="rounded-full bg-surface-muted px-2 py-0.5 text-[9.5px] font-bold text-muted-foreground">
-                        เร็วๆ นี้
+                        {item.disabledBadge ?? "เร็วๆ นี้"}
                       </span>
                     </div>
                   );
