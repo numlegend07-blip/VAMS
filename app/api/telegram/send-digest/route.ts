@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { runPmAlertsDigest } from "@/lib/pm-alerts";
+import { isSuperAdmin } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -12,8 +13,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profile?.role !== "region_admin") {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("employee_code")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!isSuperAdmin(profile?.employee_code)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 

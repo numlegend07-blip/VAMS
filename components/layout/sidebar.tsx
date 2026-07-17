@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { isSuperAdmin } from "@/lib/auth";
 import { Profile } from "@/types";
 
 const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history"];
@@ -29,7 +30,7 @@ type NavSection = {
   items: NavItem[];
 };
 
-function getSections(isRegionAdmin: boolean): NavSection[] {
+function getSections(canManageSettings: boolean): NavSection[] {
   return [
     {
       label: "เมนูหลัก",
@@ -48,7 +49,7 @@ function getSections(isRegionAdmin: boolean): NavSection[] {
     },
     {
       label: "ระบบ",
-      items: [{ label: "ตั้งค่า", href: isRegionAdmin ? "/valves/settings" : null, icon: Settings }],
+      items: [{ label: "ตั้งค่า", href: canManageSettings ? "/valves/settings" : null, icon: Settings }],
     },
   ];
 }
@@ -61,7 +62,7 @@ type Props = {
 
 export default function Sidebar({ open = false, onClose, profile }: Props) {
   const pathname = usePathname();
-  const sections = getSections(profile?.role === "region_admin");
+  const sections = getSections(isSuperAdmin(profile?.employee_code));
 
   return (
     <>
