@@ -201,7 +201,11 @@ export default function SettingsForm({ branches, settings }: Props) {
       </div>
 
       <div className="rounded-xl border border-border bg-surface shadow-sm">
-        <CardHeader icon={Building2} title="แชทรายสาขา" subtitle={`${branches.length} สาขา`} />
+        <CardHeader icon={Building2} title="แชทรายสาขา" subtitle={`${branches.length} สาขา (ไม่บังคับ)`} />
+        <p className="border-b border-border px-4.5 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
+          ไม่จำเป็นต้องตั้งค่าส่วนนี้ก็ได้ — ถ้าอยากรวมทุกสาขาไว้กลุ่มเดียว (ให้ตัวแทนแต่ละสาขาอยู่กลุ่มกลาง) แค่ตั้งค่า
+          &quot;แชทกลางเขต 10&quot; ด้านบนก็พอ สรุปที่ส่งไปจะแสดงครบทุกสาขาที่มีรายการค้างอยู่แล้ว ส่วนนี้มีไว้เผื่อบางสาขาอยากแยกกลุ่มของตัวเองเพิ่มเติม
+        </p>
         <div className="max-h-100 overflow-y-auto">
           {branches.map((b, i) => (
             <div

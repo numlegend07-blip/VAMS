@@ -117,8 +117,7 @@ export async function runPmAlertsDigest(dryRun: boolean): Promise<PmAlertsResult
         const overdue = items.filter((i) => i.overdue).length;
         return { name, overdue, dueSoon: items.length - overdue, total: items.length };
       })
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 10);
+      .sort((a, b) => b.total - a.total);
 
     const summaryText =
       flagged.length === 0
