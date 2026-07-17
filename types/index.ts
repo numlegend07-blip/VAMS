@@ -2,6 +2,7 @@ export interface Branch {
   id: string;
   name: string;
   note: string | null;
+  sort_order: number | null;
   telegram_chat_id: string | null;
   telegram_invite_link: string | null;
   created_at: string;

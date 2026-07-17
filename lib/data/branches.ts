@@ -7,6 +7,7 @@ export async function getBranches(): Promise<Branch[]> {
   const { data, error } = await supabase
     .from("branches")
     .select("*")
+    .order("sort_order", { nullsFirst: false })
     .order("name");
 
   if (error) {
