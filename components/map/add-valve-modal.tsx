@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, X } from "lucide-react";
+import { Camera, Loader2, MapPin, Plus, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Branch, ValveStatus } from "@/types";
@@ -46,6 +46,11 @@ export default function AddValveModal({ branches }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const photoPreviewUrl = photoFile ? URL.createObjectURL(photoFile) : null;
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -55,6 +60,35 @@ export default function AddValveModal({ branches }: Props) {
     setOpen(false);
     setForm(EMPTY_FORM);
     setError(null);
+    setLocationError(null);
+    setLocating(false);
+    setPhotoFile(null);
+  }
+
+  function handleUseLocation() {
+    if (!navigator.geolocation) {
+      setLocationError("อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง");
+      return;
+    }
+
+    setLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        set("latitude", pos.coords.latitude.toFixed(6));
+        set("longitude", pos.coords.longitude.toFixed(6));
+        setLocating(false);
+      },
+      (err) => {
+        setLocationError(
+          err.code === err.PERMISSION_DENIED
+            ? "กรุณาอนุญาตการเข้าถึงตำแหน่งในเบราว์เซอร์"
+            : "ไม่สามารถระบุตำแหน่งได้ ลองใหม่อีกครั้ง"
+        );
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -69,6 +103,22 @@ export default function AddValveModal({ branches }: Props) {
     setSubmitting(true);
     try {
       const supabase = createClient();
+
+      let imageUrl: string | null = null;
+      if (photoFile) {
+        const ext = photoFile.name.split(".").pop();
+        const path = `valves/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("valve-images")
+          .upload(path, photoFile);
+
+        if (uploadError) {
+          throw new Error(`อัปโหลดรูปไม่สำเร็จ: ${uploadError.message}`);
+        }
+
+        imageUrl = supabase.storage.from("valve-images").getPublicUrl(path).data.publicUrl;
+      }
+
       const { error: insertError } = await supabase.from("valves").insert({
         asset_code: form.asset_code.trim(),
         location: form.location.trim(),
@@ -81,6 +131,7 @@ export default function AddValveModal({ branches }: Props) {
         longitude: form.longitude ? Number(form.longitude) : null,
         install_year_be: form.install_year_be ? Number(form.install_year_be) : null,
         status: form.status,
+        image_url: imageUrl,
       });
 
       if (insertError) {
@@ -223,6 +274,60 @@ export default function AddValveModal({ branches }: Props) {
                     className={inputClass}
                   />
                 </Field>
+
+                <div className="sm:col-span-2 -mt-1.5 flex flex-col gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleUseLocation}
+                    disabled={locating}
+                    className="flex w-fit items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                  >
+                    {locating ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <MapPin className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    )}
+                    {locating ? "กำลังระบุตำแหน่ง..." : "ใช้ตำแหน่งปัจจุบัน"}
+                  </button>
+                  {locationError && <p className="text-[11px] text-danger">{locationError}</p>}
+                </div>
+
+                <div className="sm:col-span-2">
+                  <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    ภาพถ่ายวาล์ว
+                  </span>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                  />
+
+                  {photoPreviewUrl ? (
+                    <div className="relative h-36 w-full overflow-hidden rounded-lg border border-border">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photoPreviewUrl} alt="ภาพวาล์ว" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setPhotoFile(null)}
+                        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                      >
+                        <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="flex h-24 w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary"
+                    >
+                      <Camera className="h-5 w-5" strokeWidth={2} />
+                      <span className="text-xs">ถ่ายภาพ / แนบรูปภาพวาล์ว</span>
+                    </button>
+                  )}
+                </div>
 
                 <div className="sm:col-span-2">
                   <Field label="สถานะวาล์ว">

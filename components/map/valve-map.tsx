@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
 import { useTheme } from "next-themes";
+import { Camera, Loader2 } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
+import { createClient } from "@/lib/supabase/client";
 import { ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
 import {
@@ -113,6 +116,8 @@ export default function ValveMap({ valves }: Props) {
                   หมายเหตุ: {valve.remark}
                 </div>
               )}
+
+              <ValvePhotoBlock valve={valve} />
             </div>
           </Popup>
         </CircleMarker>
@@ -135,5 +140,89 @@ function SpecRow({
       <td className="py-0.5 pr-3 align-top text-muted-foreground">{label}</td>
       <td className={cn("py-0.5 align-top font-semibold text-foreground", valueClassName)}>{value}</td>
     </tr>
+  );
+}
+
+function ValvePhotoBlock({ valve }: { valve: ValveWithBranch }) {
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split(".").pop();
+      const path = `valves/${valve.id}/${crypto.randomUUID()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("valve-images")
+        .upload(path, file);
+      if (uploadError) throw new Error(uploadError.message);
+
+      const publicUrl = supabase.storage.from("valve-images").getPublicUrl(path).data.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from("valves")
+        .update({ image_url: publicUrl })
+        .eq("id", valve.id);
+      if (updateError) throw new Error(updateError.message);
+
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "อัปโหลดรูปไม่สำเร็จ");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="mt-2.5">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+          e.target.value = "";
+        }}
+      />
+
+      {valve.image_url ? (
+        <a href={valve.image_url} target="_blank" rel="noopener noreferrer" className="block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={valve.image_url}
+            alt={valve.location ?? valve.asset_code ?? "valve"}
+            className="h-24 w-full rounded-lg border border-border object-cover"
+          />
+        </a>
+      ) : (
+        <div className="flex h-14 w-full items-center justify-center rounded-lg border border-dashed border-border text-[10.5px] text-muted-foreground">
+          ยังไม่มีรูปภาพ
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+      >
+        {uploading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Camera className="h-3.5 w-3.5" strokeWidth={2.25} />
+        )}
+        {uploading ? "กำลังอัปโหลด..." : valve.image_url ? "อัปเดตรูปภาพ" : "ถ่าย/แนบรูปภาพ"}
+      </button>
+
+      {error && <p className="mt-1 text-[10.5px] text-danger">{error}</p>}
+    </div>
   );
 }
