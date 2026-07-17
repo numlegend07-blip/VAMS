@@ -2,7 +2,12 @@ export interface Branch {
   id: string;
   name: string;
   note: string | null;
+  telegram_chat_id: string | null;
   created_at: string;
+}
+
+export interface AppSettings {
+  telegram_region_chat_id: string | null;
 }
 
 export type ValveStatus = "ใช้งาน" | "ไม่ได้ใช้งาน" | "ไม่ระบุ";

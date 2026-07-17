@@ -29,27 +29,29 @@ type NavSection = {
   items: NavItem[];
 };
 
-const sections: NavSection[] = [
-  {
-    label: "เมนูหลัก",
-    items: [
-      { label: "แดชบอร์ด", href: "/valves", icon: LayoutDashboard },
-      { label: "แผนที่จุดติดตั้ง", href: "/valves/map", icon: Map },
-    ],
-  },
-  {
-    label: "รายงาน & ติดตาม",
-    items: [
-      { label: "บันทึกซ่อมบำรุง (PM)", href: "/valves/pm", icon: ClipboardList },
-      { label: "ประวัติการบำรุงรักษา", href: "/valves/history", icon: History },
-      { label: "รายงาน", href: null, icon: BarChart3 },
-    ],
-  },
-  {
-    label: "ระบบ",
-    items: [{ label: "ตั้งค่า", href: null, icon: Settings }],
-  },
-];
+function getSections(isRegionAdmin: boolean): NavSection[] {
+  return [
+    {
+      label: "เมนูหลัก",
+      items: [
+        { label: "แดชบอร์ด", href: "/valves", icon: LayoutDashboard },
+        { label: "แผนที่จุดติดตั้ง", href: "/valves/map", icon: Map },
+      ],
+    },
+    {
+      label: "รายงาน & ติดตาม",
+      items: [
+        { label: "บันทึกซ่อมบำรุง (PM)", href: "/valves/pm", icon: ClipboardList },
+        { label: "ประวัติการบำรุงรักษา", href: "/valves/history", icon: History },
+        { label: "รายงาน", href: null, icon: BarChart3 },
+      ],
+    },
+    {
+      label: "ระบบ",
+      items: [{ label: "ตั้งค่า", href: isRegionAdmin ? "/valves/settings" : null, icon: Settings }],
+    },
+  ];
+}
 
 type Props = {
   open?: boolean;
@@ -59,6 +61,7 @@ type Props = {
 
 export default function Sidebar({ open = false, onClose, profile }: Props) {
   const pathname = usePathname();
+  const sections = getSections(profile?.role === "region_admin");
 
   return (
     <>

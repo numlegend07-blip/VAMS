@@ -13,9 +13,10 @@ const TITLES: Record<string, string> = {
   "/valves/map": "แผนที่จุดติดตั้ง",
   "/valves/pm": "บันทึกข้อมูลการบำรุงรักษา",
   "/valves/history": "ประวัติการบำรุงรักษา",
+  "/valves/settings": "ตั้งค่า",
 };
 
-const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history"];
+const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/settings"];
 
 type Props = {
   onMenuClick?: () => void;
