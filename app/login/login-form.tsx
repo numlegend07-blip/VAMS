@@ -71,6 +71,9 @@ export default function LoginForm() {
           autoComplete="current-password"
           className="w-full rounded-lg border border-white/15 bg-white/8 px-4 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-primary focus:bg-primary/12 focus:ring-2 focus:ring-primary/20"
         />
+        <p className="mt-1.5 text-[11px] leading-relaxed text-white/45">
+          ใช้รหัสพนักงานเป็นรหัสผ่าน (ไม่ใช่รหัสผ่านเว็บ กปภ. เดิม)
+        </p>
       </div>
 
       {error && (
