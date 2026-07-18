@@ -6,7 +6,7 @@ export async function getAppSettings(): Promise<AppSettings> {
 
   const { data, error } = await supabase
     .from("app_settings")
-    .select("telegram_region_chat_id, telegram_region_invite_link")
+    .select("telegram_region_chat_id, telegram_region_invite_link, last_alert_run_at, last_alert_run_status")
     .eq("id", 1)
     .maybeSingle();
 
@@ -14,5 +14,12 @@ export async function getAppSettings(): Promise<AppSettings> {
     throw new Error(`โหลดข้อมูลตั้งค่าไม่สำเร็จ: ${error.message}`);
   }
 
-  return data ?? { telegram_region_chat_id: null, telegram_region_invite_link: null };
+  return (
+    data ?? {
+      telegram_region_chat_id: null,
+      telegram_region_invite_link: null,
+      last_alert_run_at: null,
+      last_alert_run_status: null,
+    }
+  );
 }

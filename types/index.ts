@@ -11,6 +11,8 @@ export interface Branch {
 export interface AppSettings {
   telegram_region_chat_id: string | null;
   telegram_region_invite_link: string | null;
+  last_alert_run_at: string | null;
+  last_alert_run_status: string | null;
 }
 
 export type ValveStatus = "ใช้งาน" | "ไม่ได้ใช้งาน" | "ไม่ระบุ";

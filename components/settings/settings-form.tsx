@@ -161,6 +161,32 @@ export default function SettingsForm({ branches, settings }: Props) {
         <p className="mt-0.5 text-xs text-muted-foreground">
           ตั้งค่าการแจ้งเตือน PM ค้างกำหนดผ่าน Telegram (เฉพาะผู้ดูแลระดับเขต)
         </p>
+        <p className="mt-2 text-xs">
+          <span className="text-muted-foreground">cron แจ้งเตือนรันครั้งล่าสุด: </span>
+          {settings.last_alert_run_at ? (
+            <>
+              <span className="font-semibold text-foreground">
+                {new Date(settings.last_alert_run_at).toLocaleString("th-TH", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone: "Asia/Bangkok",
+                })}
+              </span>
+              {settings.last_alert_run_status && (
+                <span
+                  className={cn(
+                    "ml-1.5",
+                    settings.last_alert_run_status.startsWith("error") ? "text-danger" : "text-success"
+                  )}
+                >
+                  ({settings.last_alert_run_status})
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-muted-foreground">ยังไม่เคยรัน</span>
+          )}
+        </p>
       </div>
 
       <div className="rounded-xl border border-border bg-surface shadow-sm">
