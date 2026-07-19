@@ -217,47 +217,13 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-[19px] font-extrabold text-foreground">บันทึกข้อมูลการบำรุงรักษา</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            กรอกข้อมูลการตรวจสอบและซ่อมบำรุงคอนโทรลวาล์ว
-          </p>
-        </div>
-
-        <div className="flex gap-2.5">
-          <button
-            type="button"
-            onClick={clearForm}
-            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-muted"
-          >
-            <RotateCcw className="h-4 w-4" strokeWidth={2.25} />
-            ล้างฟอร์ม
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className={cn(
-              "flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover",
-              submitting && "opacity-70"
-            )}
-          >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" strokeWidth={2.25} />}
-            บันทึกข้อมูล
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <p className="rounded-lg bg-danger-subtle px-3.5 py-2.5 text-sm text-danger">{error}</p>
-      )}
-      {success && (
-        <p className="rounded-lg bg-success-subtle px-3.5 py-2.5 text-sm text-success">
-          บันทึกข้อมูลสำเร็จ
+    <div className="flex flex-col gap-5 pb-6">
+      <div>
+        <h1 className="text-[19px] font-extrabold text-foreground">บันทึกข้อมูลการบำรุงรักษา</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          กรอกข้อมูลการตรวจสอบและซ่อมบำรุงคอนโทรลวาล์ว
         </p>
-      )}
+      </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_340px] lg:items-start">
         {/* Left column */}
@@ -482,6 +448,36 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
               <p className="p-4 text-center text-xs text-muted-foreground">ยังไม่มีบันทึก</p>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="sticky bottom-4 z-10 flex flex-col gap-2.5 rounded-xl border border-border bg-surface p-4 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          {error && <p className="text-sm font-medium text-danger">{error}</p>}
+          {success && <p className="text-sm font-medium text-success">บันทึกข้อมูลสำเร็จ</p>}
+        </div>
+
+        <div className="flex shrink-0 gap-2.5">
+          <button
+            type="button"
+            onClick={clearForm}
+            className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-muted"
+          >
+            <RotateCcw className="h-4 w-4" strokeWidth={2.25} />
+            ล้างฟอร์ม
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting}
+            className={cn(
+              "flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover",
+              submitting && "opacity-70"
+            )}
+          >
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" strokeWidth={2.25} />}
+            บันทึกข้อมูล
+          </button>
         </div>
       </div>
     </div>
