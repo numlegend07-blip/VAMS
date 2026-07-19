@@ -300,7 +300,6 @@ export default function AddValveModal({ branches }: Props) {
                     ref={photoInputRef}
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     className="hidden"
                     onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
                   />
