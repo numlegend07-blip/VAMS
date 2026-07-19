@@ -64,18 +64,30 @@ export default function PMForm({ valveId, onDone }: Props) {
       ]);
 
       const supabase = createClient();
-      const { error: insertError } = await supabase.from("pm_history").insert({
-        valve_id: valveId,
-        performed_at: performedAt,
-        title: title.trim(),
-        description: description.trim() || null,
-        pm_type: pmType,
-        photo_before_url: photoBeforeUrl,
-        photo_after_url: photoAfterUrl,
-      });
+      const { data: inserted, error: insertError } = await supabase
+        .from("pm_history")
+        .insert({
+          valve_id: valveId,
+          performed_at: performedAt,
+          title: title.trim(),
+          description: description.trim() || null,
+          pm_type: pmType,
+          photo_before_url: photoBeforeUrl,
+          photo_after_url: photoAfterUrl,
+        })
+        .select("id")
+        .single();
 
       if (insertError) {
         throw new Error(`บันทึกไม่สำเร็จ: ${insertError.message}`);
+      }
+
+      if (inserted?.id) {
+        fetch("/api/telegram/notify-pm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recordId: inserted.id }),
+        }).catch(() => {});
       }
 
       router.refresh();

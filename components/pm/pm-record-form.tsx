@@ -160,26 +160,30 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
 
       const supabase = createClient();
 
-      const { error: insertError } = await supabase.from("pm_history").insert({
-        valve_id: matchedValve.id,
-        performed_at: form.performedAt,
-        title: form.pmType,
-        pm_type: form.pmType,
-        description: form.notes.trim() || null,
-        pressure_in: form.pressureIn ? Number(form.pressureIn) : null,
-        pressure_out: form.pressureOut ? Number(form.pressureOut) : null,
-        set_point_original: form.setPointOriginal ? Number(form.setPointOriginal) : null,
-        set_point_adjusted: form.setPointAdjusted ? Number(form.setPointAdjusted) : null,
-        condition_found: form.conditionFound.trim() || null,
-        work_performed: form.workPerformed.trim() || null,
-        parts_used: form.partsUsed.trim() || null,
-        next_due_at: form.nextDueAt || null,
-        status_after: form.statusAfter,
-        photo_before_url: photoBeforeUrl,
-        photo_after_url: photoAfterUrl,
-        created_by: profile?.id ?? null,
-        created_by_name: profile?.full_name ?? null,
-      });
+      const { data: inserted, error: insertError } = await supabase
+        .from("pm_history")
+        .insert({
+          valve_id: matchedValve.id,
+          performed_at: form.performedAt,
+          title: form.pmType,
+          pm_type: form.pmType,
+          description: form.notes.trim() || null,
+          pressure_in: form.pressureIn ? Number(form.pressureIn) : null,
+          pressure_out: form.pressureOut ? Number(form.pressureOut) : null,
+          set_point_original: form.setPointOriginal ? Number(form.setPointOriginal) : null,
+          set_point_adjusted: form.setPointAdjusted ? Number(form.setPointAdjusted) : null,
+          condition_found: form.conditionFound.trim() || null,
+          work_performed: form.workPerformed.trim() || null,
+          parts_used: form.partsUsed.trim() || null,
+          next_due_at: form.nextDueAt || null,
+          status_after: form.statusAfter,
+          photo_before_url: photoBeforeUrl,
+          photo_after_url: photoAfterUrl,
+          created_by: profile?.id ?? null,
+          created_by_name: profile?.full_name ?? null,
+        })
+        .select("id")
+        .single();
 
       if (insertError) {
         throw new Error(`บันทึกไม่สำเร็จ: ${insertError.message}`);
@@ -192,6 +196,14 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
 
       if (statusError) {
         throw new Error(`บันทึก PM สำเร็จ แต่อัปเดตสถานะวาล์วไม่สำเร็จ: ${statusError.message}`);
+      }
+
+      if (inserted?.id) {
+        fetch("/api/telegram/notify-pm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recordId: inserted.id }),
+        }).catch(() => {});
       }
 
       clearForm();
