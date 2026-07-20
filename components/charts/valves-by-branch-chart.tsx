@@ -12,13 +12,8 @@ import {
 } from "recharts";
 
 import { Branch, ValveWithBranch } from "@/types";
+import { STATUS_COLORS, STATUS_NAME } from "@/lib/valve-status";
 import CardHeader from "@/components/ui/card-header";
-
-const STATUS_COLORS = {
-  ใช้งาน: "#10b981",
-  ไม่ได้ใช้งาน: "#ef4444",
-  ไม่ระบุ: "#8b5cf6",
-};
 
 type Props = {
   valves: ValveWithBranch[];
@@ -51,7 +46,7 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
                   className="h-2.5 w-2.5 rounded-full"
                   style={{ background: STATUS_COLORS[key] }}
                 />
-                {key}
+                {STATUS_NAME[key]}
               </span>
             ))}
           </div>
@@ -91,6 +86,7 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
             />
             <Bar
               dataKey="ใช้งาน"
+              name={STATUS_NAME["ใช้งาน"]}
               stackId="status"
               fill={STATUS_COLORS["ใช้งาน"]}
               isAnimationActive={false}
@@ -101,6 +97,7 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
             />
             <Bar
               dataKey="ไม่ได้ใช้งาน"
+              name={STATUS_NAME["ไม่ได้ใช้งาน"]}
               stackId="status"
               fill={STATUS_COLORS["ไม่ได้ใช้งาน"]}
               isAnimationActive={false}
@@ -111,6 +108,7 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
             />
             <Bar
               dataKey="ไม่ระบุ"
+              name={STATUS_NAME["ไม่ระบุ"]}
               stackId="status"
               fill={STATUS_COLORS["ไม่ระบุ"]}
               radius={[3, 3, 0, 0]}

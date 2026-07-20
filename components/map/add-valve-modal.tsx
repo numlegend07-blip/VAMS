@@ -336,8 +336,8 @@ export default function AddValveModal({ branches }: Props) {
                       className={inputClass}
                     >
                       <option value="ใช้งาน">✅ ใช้งานปกติ</option>
-                      <option value="ไม่ได้ใช้งาน">🔴 ไม่ได้ใช้งาน</option>
-                      <option value="ไม่ระบุ">⚫ ไม่ระบุสถานะ</option>
+                      <option value="ไม่ได้ใช้งาน">🟣 ไม่ได้ใช้งาน</option>
+                      <option value="ไม่ระบุ">🔴 ชำรุด</option>
                     </select>
                   </Field>
                 </div>

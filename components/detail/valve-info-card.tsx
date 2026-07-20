@@ -6,6 +6,7 @@ import { ArrowLeft, MapPin, Building2, CalendarDays, Settings2, Plus } from "luc
 
 import { PMRecord, ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
+import { STATUS_BADGE, STATUS_LABEL } from "@/lib/valve-status";
 
 import DetailSpecCard from "./detail-spec-card";
 import ActionButtons from "./action-buttons";
@@ -53,20 +54,10 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
             <span
               className={cn(
                 "mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-                active
-                  ? "bg-success-subtle text-success"
-                  : valve.status === "ไม่ระบุ"
-                    ? "bg-purple-subtle text-purple"
-                    : "bg-danger-subtle text-danger"
+                STATUS_BADGE[valve.status]
               )}
             >
-              <span
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  active ? "bg-success" : valve.status === "ไม่ระบุ" ? "bg-purple" : "bg-danger"
-                )}
-              />
-              {valve.status}
+              {STATUS_LABEL[valve.status]}
             </span>
 
             <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-2">

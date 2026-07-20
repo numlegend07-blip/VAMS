@@ -1,4 +1,4 @@
-import { Gauge, CircleCheck, CircleX, HelpCircle } from "lucide-react";
+import { Gauge, CircleCheck, CircleX, Wrench } from "lucide-react";
 
 import { ValveWithBranch } from "@/types";
 
@@ -11,7 +11,7 @@ export default function DashboardCards({ valves }: Props) {
 
   const active = valves.filter((v) => v.status === "ใช้งาน").length;
   const inactive = valves.filter((v) => v.status === "ไม่ได้ใช้งาน").length;
-  const unknown = valves.filter((v) => v.status === "ไม่ระบุ").length;
+  const broken = valves.filter((v) => v.status === "ไม่ระบุ").length;
 
   const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
 
@@ -32,15 +32,15 @@ export default function DashboardCards({ valves }: Props) {
         value={String(inactive)}
         sub={`${pct(inactive)}% ของทั้งหมด`}
         icon={CircleX}
-        color="danger"
+        color="purple"
       />
 
       <Card
-        title="ไม่ระบุสถานะ"
-        value={String(unknown)}
-        sub={`${pct(unknown)}% ของทั้งหมด`}
-        icon={HelpCircle}
-        color="purple"
+        title="ชำรุด"
+        value={String(broken)}
+        sub={`${pct(broken)}% ของทั้งหมด`}
+        icon={Wrench}
+        color="danger"
       />
     </div>
   );

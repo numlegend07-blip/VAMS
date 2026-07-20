@@ -7,7 +7,7 @@ import { History, ImageIcon, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatThaiDate } from "@/lib/format";
 import { PM_TYPE_STYLES, PM_TYPES } from "@/lib/pm-type";
-import { STATUS_BADGE } from "@/lib/valve-status";
+import { STATUS_BADGE, STATUS_LABEL } from "@/lib/valve-status";
 import CardHeader from "@/components/ui/card-header";
 import SearchBox from "@/components/search/search-box";
 import { cn } from "@/lib/utils";
@@ -98,7 +98,7 @@ export default function HistoryTable({ records: initialRecords, branches }: Prop
           <option value="">ทุกสถานะ</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {STATUS_LABEL[s]}
             </option>
           ))}
         </select>
@@ -163,7 +163,7 @@ export default function HistoryTable({ records: initialRecords, branches }: Prop
                     <td className="whitespace-nowrap px-3.5 py-2.5">
                       {r.status_after && (
                         <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", STATUS_BADGE[r.status_after])}>
-                          {r.status_after}
+                          {STATUS_LABEL[r.status_after]}
                         </span>
                       )}
                     </td>

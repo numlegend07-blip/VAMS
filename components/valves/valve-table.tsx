@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 
 import { ValveWithBranch, ValveStatus } from "@/types";
 import { cn } from "@/lib/utils";
+import { STATUS_BADGE, STATUS_LABEL } from "@/lib/valve-status";
 
 type ValveTableProps = {
   valves: ValveWithBranch[];
@@ -71,28 +72,15 @@ export default function ValveTable({ valves }: ValveTableProps) {
   );
 }
 
-const STATUS_STYLES: Record<ValveStatus, string> = {
-  ใช้งาน: "bg-success-subtle text-success",
-  ไม่ได้ใช้งาน: "bg-danger-subtle text-danger",
-  ไม่ระบุ: "bg-purple-subtle text-purple",
-};
-
-const STATUS_DOT: Record<ValveStatus, string> = {
-  ใช้งาน: "bg-success",
-  ไม่ได้ใช้งาน: "bg-danger",
-  ไม่ระบุ: "bg-purple",
-};
-
 function StatusBadge({ status }: { status: ValveStatus }) {
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
-        STATUS_STYLES[status]
+        STATUS_BADGE[status]
       )}
     >
-      <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[status])} />
-      {status}
+      {STATUS_LABEL[status]}
     </span>
   );
 }

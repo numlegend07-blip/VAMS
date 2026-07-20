@@ -2,14 +2,9 @@
 
 import { PieChart as PieChartIcon } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { ValveWithBranch } from "@/types";
+import { ValveStatus, ValveWithBranch } from "@/types";
+import { STATUS_COLORS, STATUS_NAME } from "@/lib/valve-status";
 import CardHeader from "@/components/ui/card-header";
-
-const STATUS_COLORS: Record<string, string> = {
-  ใช้งาน: "#10b981",
-  ไม่ได้ใช้งาน: "#ef4444",
-  ไม่ระบุ: "#8b5cf6",
-};
 
 type Props = {
   valves: ValveWithBranch[];
@@ -61,7 +56,7 @@ export default function ValveStatusChart({ valves }: Props) {
                 boxShadow: "var(--shadow-md)",
               }}
               itemStyle={{ color: "var(--foreground)" }}
-              formatter={(value, name) => [`${value} ตัว`, name]}
+              formatter={(value, name) => [`${value} ตัว`, STATUS_NAME[name as ValveStatus] ?? name]}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -79,7 +74,7 @@ export default function ValveStatusChart({ valves }: Props) {
               className="h-2.5 w-2.5 rounded-full"
               style={{ background: STATUS_COLORS[entry.name] }}
             />
-            {entry.name}
+            {STATUS_NAME[entry.name]}
             <span className="font-semibold text-foreground">{entry.value}</span>
           </span>
         ))}
