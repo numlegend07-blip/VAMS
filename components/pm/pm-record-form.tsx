@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { PM_TYPES } from "@/lib/pm-type";
 import { STATUS_LABEL } from "@/lib/valve-status";
 import CardHeader from "@/components/ui/card-header";
-import { Profile, PMRecordWithValve, PMType, ValveStatus, ValveWithBranch } from "@/types";
+import { Branch, Profile, PMRecordWithValve, PMType, ValveStatus, ValveWithBranch } from "@/types";
 import { PMStats } from "@/lib/data/pm-history";
 
 const STATUSES: ValveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ไม่ระบุ"];
@@ -82,14 +82,16 @@ function emptyForm(): FormState {
 
 type Props = {
   valves: ValveWithBranch[];
+  branches: Branch[];
   stats: PMStats;
   profile: Profile | null;
   latest: PMRecordWithValve | null;
 };
 
-export default function PMRecordForm({ valves, stats, profile, latest }: Props) {
+export default function PMRecordForm({ valves, branches, stats, profile, latest }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [branchFilter, setBranchFilter] = useState("");
   const [beforeFile, setBeforeFile] = useState<File | null>(null);
   const [afterFile, setAfterFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -103,7 +105,16 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  const canFilterBranch = profile?.role === "region_admin";
+  const codeChoices = branchFilter ? valves.filter((v) => v.branch_id === branchFilter) : valves;
   const matchedValve = valves.find((v) => v.asset_code === form.assetCode.trim()) ?? null;
+
+  function handleBranchFilterChange(branchId: string) {
+    setBranchFilter(branchId);
+    if (branchId && matchedValve && matchedValve.branch_id !== branchId) {
+      set("assetCode", "");
+    }
+  }
 
   function clearForm() {
     setForm(emptyForm());
@@ -229,7 +240,27 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
         {/* Left column */}
         <div className="flex flex-col gap-5">
           <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-            <CardHeader icon={Settings2} title="ข้อมูลวาล์ว" subtitle="ข้อมูลพื้นฐาน" />
+            <CardHeader
+              icon={Settings2}
+              title="ข้อมูลวาล์ว"
+              subtitle="ข้อมูลพื้นฐาน"
+              action={
+                canFilterBranch ? (
+                  <select
+                    value={branchFilter}
+                    onChange={(e) => handleBranchFilterChange(e.target.value)}
+                    className="w-40 shrink-0 rounded-lg border border-border bg-surface px-2.5 py-2 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary-subtle"
+                  >
+                    <option value="">ทุกสาขา</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : undefined
+              }
+            />
             <div className="grid grid-cols-1 gap-4 p-4.5 sm:grid-cols-2">
               <Field label="รหัสวาล์ว" required>
                 <input
@@ -240,7 +271,7 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
                   className={inputClass}
                 />
                 <datalist id="pm-valve-codes">
-                  {valves
+                  {codeChoices
                     .filter((v) => v.asset_code)
                     .map((v) => (
                       <option key={v.id} value={v.asset_code!} />
@@ -248,6 +279,9 @@ export default function PMRecordForm({ valves, stats, profile, latest }: Props) 
                 </datalist>
                 {form.assetCode.trim() && !matchedValve && (
                   <p className="mt-1 text-[11px] text-warning">ไม่พบรหัสวาล์วนี้ในระบบ</p>
+                )}
+                {branchFilter && matchedValve && matchedValve.branch_id !== branchFilter && (
+                  <p className="mt-1 text-[11px] text-warning">รหัสนี้ไม่ได้อยู่ในสาขาที่กรองไว้</p>
                 )}
               </Field>
 
