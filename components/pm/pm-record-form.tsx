@@ -108,12 +108,26 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
   const canFilterBranch = profile?.role === "region_admin";
   const codeChoices = branchFilter ? valves.filter((v) => v.branch_id === branchFilter) : valves;
   const matchedValve = valves.find((v) => v.asset_code === form.assetCode.trim()) ?? null;
+  const pressureEditable = form.pmType === "ปรับตั้งค่า";
 
   function handleBranchFilterChange(branchId: string) {
     setBranchFilter(branchId);
     if (branchId && matchedValve && matchedValve.branch_id !== branchId) {
       set("assetCode", "");
     }
+  }
+
+  function handlePmTypeChange(type: PMType) {
+    setForm((prev) => ({
+      ...prev,
+      pmType: type,
+      ...(type !== "ปรับตั้งค่า" && {
+        pressureIn: "",
+        pressureOut: "",
+        setPointOriginal: "",
+        setPointAdjusted: "",
+      }),
+    }));
   }
 
   function clearForm() {
@@ -157,7 +171,7 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
       setError("กรุณาเลือกวันที่ตรวจสอบ");
       return;
     }
-    if (!form.pressureIn.trim() || !form.pressureOut.trim()) {
+    if (pressureEditable && (!form.pressureIn.trim() || !form.pressureOut.trim())) {
       setError("กรุณากรอกความดันขาเข้าและขาออก");
       return;
     }
@@ -313,7 +327,7 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
               </Field>
 
               <Field label="ประเภทงาน">
-                <select value={form.pmType} onChange={(e) => set("pmType", e.target.value as PMType)} className={inputClass}>
+                <select value={form.pmType} onChange={(e) => handlePmTypeChange(e.target.value as PMType)} className={inputClass}>
                   {PM_TYPES.map((type) => (
                     <option key={type} value={type}>
                       {type}
@@ -365,19 +379,36 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
           </div>
 
           <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-            <CardHeader icon={Gauge} color="warning" title="ค่าความดัน" subtitle="Inlet / Outlet Pressure Reading" />
+            <CardHeader
+              icon={Gauge}
+              color="warning"
+              title="ค่าความดัน"
+              subtitle={
+                pressureEditable
+                  ? "Inlet / Outlet Pressure Reading"
+                  : 'กรอกได้เฉพาะประเภทงาน "ปรับตั้งค่า"'
+              }
+            />
             <div className="grid grid-cols-1 gap-4 p-4.5 sm:grid-cols-2">
-              <Field label="ความดันขาเข้า (Inlet)" required>
-                <UnitInput value={form.pressureIn} onChange={(v) => set("pressureIn", v)} />
+              <Field label="ความดันขาเข้า (Inlet)" required={pressureEditable}>
+                <UnitInput value={form.pressureIn} onChange={(v) => set("pressureIn", v)} disabled={!pressureEditable} />
               </Field>
-              <Field label="ความดันขาออก (Outlet)" required>
-                <UnitInput value={form.pressureOut} onChange={(v) => set("pressureOut", v)} />
+              <Field label="ความดันขาออก (Outlet)" required={pressureEditable}>
+                <UnitInput value={form.pressureOut} onChange={(v) => set("pressureOut", v)} disabled={!pressureEditable} />
               </Field>
               <Field label="ค่าตั้งเดิม (Set Point)">
-                <UnitInput value={form.setPointOriginal} onChange={(v) => set("setPointOriginal", v)} />
+                <UnitInput
+                  value={form.setPointOriginal}
+                  onChange={(v) => set("setPointOriginal", v)}
+                  disabled={!pressureEditable}
+                />
               </Field>
               <Field label="ค่าตั้งใหม่ (Adjusted)">
-                <UnitInput value={form.setPointAdjusted} onChange={(v) => set("setPointAdjusted", v)} />
+                <UnitInput
+                  value={form.setPointAdjusted}
+                  onChange={(v) => set("setPointAdjusted", v)}
+                  disabled={!pressureEditable}
+                />
               </Field>
             </div>
           </div>
@@ -547,7 +578,15 @@ function Field({
   );
 }
 
-function UnitInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+function UnitInput({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}) {
   return (
     <div className="relative">
       <input
@@ -555,8 +594,9 @@ function UnitInput({ value, onChange }: { value: string; onChange: (value: strin
         step="0.01"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
         placeholder="0.00"
-        className={cn(inputClass, "pr-11")}
+        className={cn(inputClass, "pr-11", disabled && "cursor-not-allowed bg-surface-muted text-muted-foreground")}
       />
       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-muted-foreground">
         Bar
