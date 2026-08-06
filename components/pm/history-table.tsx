@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { History, ImageIcon, Trash2 } from "lucide-react";
+import { Eye, History, ImageIcon, Pencil, Trash2 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { formatThaiDate } from "@/lib/format";
@@ -10,6 +10,7 @@ import { PM_TYPE_STYLES, PM_TYPES } from "@/lib/pm-type";
 import { STATUS_BADGE, STATUS_LABEL } from "@/lib/valve-status";
 import CardHeader from "@/components/ui/card-header";
 import SearchBox from "@/components/search/search-box";
+import PMRecordModal from "@/components/pm/pm-record-modal";
 import { cn } from "@/lib/utils";
 import { Branch, PMRecordWithValve, PMType, ValveStatus } from "@/types";
 
@@ -28,6 +29,7 @@ export default function HistoryTable({ records: initialRecords, branches }: Prop
   const [status, setStatus] = useState<ValveStatus | "">("");
   const [type, setType] = useState<PMType | "">("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [modal, setModal] = useState<{ record: PMRecordWithValve; mode: "view" | "edit" } | null>(null);
 
   const filtered = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -186,15 +188,33 @@ export default function HistoryTable({ records: initialRecords, branches }: Prop
                       )}
                     </td>
                     <td className="whitespace-nowrap px-3.5 py-2.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(r.id)}
-                        disabled={deletingId === r.id}
-                        title="ลบ"
-                        className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger disabled:opacity-50"
-                      >
-                        <Trash2 className="h-4 w-4" strokeWidth={2} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setModal({ record: r, mode: "view" })}
+                          title="ดูรายละเอียด"
+                          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary-subtle hover:text-primary"
+                        >
+                          <Eye className="h-4 w-4" strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setModal({ record: r, mode: "edit" })}
+                          title="แก้ไข"
+                          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-primary-subtle hover:text-primary"
+                        >
+                          <Pencil className="h-4 w-4" strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(r.id)}
+                          disabled={deletingId === r.id}
+                          title="ลบ"
+                          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-danger-subtle hover:text-danger disabled:opacity-50"
+                        >
+                          <Trash2 className="h-4 w-4" strokeWidth={2} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -203,6 +223,19 @@ export default function HistoryTable({ records: initialRecords, branches }: Prop
           </div>
         )}
       </div>
+
+      {modal && (
+        <PMRecordModal
+          record={modal.record}
+          initialMode={modal.mode}
+          onClose={() => setModal(null)}
+          onSaved={(updated) => {
+            setRecords((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+            setModal(null);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
