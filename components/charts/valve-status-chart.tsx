@@ -2,8 +2,13 @@
 
 import { PieChart as PieChartIcon } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { ValveStatus, ValveWithBranch } from "@/types";
-import { STATUS_COLORS, STATUS_NAME } from "@/lib/valve-status";
+import { ValveWithBranch } from "@/types";
+import {
+  EffectiveStatus,
+  EFFECTIVE_STATUS_COLORS,
+  EFFECTIVE_STATUS_NAME,
+  getEffectiveStatus,
+} from "@/lib/valve-effective-status";
 import CardHeader from "@/components/ui/card-header";
 
 type Props = {
@@ -11,15 +16,16 @@ type Props = {
 };
 
 export default function ValveStatusChart({ valves }: Props) {
-  const counts = {
-    ใช้งาน: valves.filter((v) => v.status === "ใช้งาน").length,
-    ไม่ได้ใช้งาน: valves.filter((v) => v.status === "ไม่ได้ใช้งาน").length,
-    ไม่ระบุ: valves.filter((v) => v.status === "ไม่ระบุ").length,
+  const counts: Record<EffectiveStatus, number> = {
+    ใช้งาน: 0,
+    ไม่ได้ใช้งาน: 0,
+    ชำรุด: 0,
   };
+  for (const v of valves) counts[getEffectiveStatus(v)]++;
 
   const total = valves.length;
 
-  const data = (Object.keys(counts) as Array<keyof typeof counts>)
+  const data = (Object.keys(counts) as EffectiveStatus[])
     .map((name) => ({ name, value: counts[name] }))
     .filter((entry) => entry.value > 0);
 
@@ -42,7 +48,7 @@ export default function ValveStatusChart({ valves }: Props) {
               isAnimationActive={false}
             >
               {data.map((entry) => (
-                <Cell key={entry.name} fill={STATUS_COLORS[entry.name]} />
+                <Cell key={entry.name} fill={EFFECTIVE_STATUS_COLORS[entry.name]} />
               ))}
             </Pie>
 
@@ -56,7 +62,7 @@ export default function ValveStatusChart({ valves }: Props) {
                 boxShadow: "var(--shadow-md)",
               }}
               itemStyle={{ color: "var(--foreground)" }}
-              formatter={(value, name) => [`${value} ตัว`, STATUS_NAME[name as ValveStatus] ?? name]}
+              formatter={(value, name) => [`${value} ตัว`, EFFECTIVE_STATUS_NAME[name as EffectiveStatus] ?? name]}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -72,9 +78,9 @@ export default function ValveStatusChart({ valves }: Props) {
           <span key={entry.name} className="flex items-center gap-1.5 text-muted-foreground">
             <span
               className="h-2.5 w-2.5 rounded-full"
-              style={{ background: STATUS_COLORS[entry.name] }}
+              style={{ background: EFFECTIVE_STATUS_COLORS[entry.name] }}
             />
-            {STATUS_NAME[entry.name]}
+            {EFFECTIVE_STATUS_NAME[entry.name]}
             <span className="font-semibold text-foreground">{entry.value}</span>
           </span>
         ))}

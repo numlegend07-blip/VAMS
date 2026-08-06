@@ -11,11 +11,12 @@ import { createClient } from "@/lib/supabase/client";
 import { ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
 import {
-  STATUS_COLORS,
-  STATUS_LABEL,
-  STATUS_TEXT_COLOR,
-  STATUS_BORDER_COLOR,
-} from "@/lib/valve-status";
+  EFFECTIVE_STATUS_COLORS,
+  EFFECTIVE_STATUS_LABEL,
+  EFFECTIVE_STATUS_TEXT_COLOR,
+  EFFECTIVE_STATUS_BORDER_COLOR,
+  getEffectiveStatus,
+} from "@/lib/valve-effective-status";
 
 const LIGHT_TILES = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 const DARK_TILES = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
@@ -62,7 +63,9 @@ export default function ValveMap({ valves }: Props) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
       />
 
-      {points.map((valve) => (
+      {points.map((valve) => {
+        const effective = getEffectiveStatus(valve);
+        return (
         <CircleMarker
           key={valve.id}
           center={[valve.latitude, valve.longitude]}
@@ -70,7 +73,7 @@ export default function ValveMap({ valves }: Props) {
           pathOptions={{
             color: "#ffffff",
             weight: 2,
-            fillColor: STATUS_COLORS[valve.status] ?? STATUS_COLORS["ไม่ระบุ"],
+            fillColor: EFFECTIVE_STATUS_COLORS[effective],
             fillOpacity: 1,
           }}
         >
@@ -79,7 +82,7 @@ export default function ValveMap({ valves }: Props) {
               <div
                 className={cn(
                   "mb-2 border-b-2 pb-1.5 text-sm font-extrabold",
-                  STATUS_BORDER_COLOR[valve.status] ?? STATUS_BORDER_COLOR["ไม่ระบุ"]
+                  EFFECTIVE_STATUS_BORDER_COLOR[effective]
                 )}
               >
                 🔧 {valve.asset_code || valve.id.slice(0, 8).toUpperCase()}
@@ -102,8 +105,8 @@ export default function ValveMap({ valves }: Props) {
                   <SpecRow label="ตรวจล่าสุด" value="ยังไม่ตรวจ" />
                   <SpecRow
                     label="สถานะ"
-                    value={STATUS_LABEL[valve.status] ?? "-"}
-                    valueClassName={cn("font-extrabold", STATUS_TEXT_COLOR[valve.status])}
+                    value={EFFECTIVE_STATUS_LABEL[effective]}
+                    valueClassName={cn("font-extrabold", EFFECTIVE_STATUS_TEXT_COLOR[effective])}
                   />
                   {valve.status !== "ใช้งาน" && valve.inactive_reason && (
                     <SpecRow label="เหตุผล" value={valve.inactive_reason} valueClassName="font-semibold text-warning" />
@@ -121,7 +124,8 @@ export default function ValveMap({ valves }: Props) {
             </div>
           </Popup>
         </CircleMarker>
-      ))}
+        );
+      })}
     </MapContainer>
   );
 }

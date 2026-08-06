@@ -12,7 +12,12 @@ import {
 } from "recharts";
 
 import { Branch, ValveWithBranch } from "@/types";
-import { STATUS_COLORS, STATUS_NAME } from "@/lib/valve-status";
+import {
+  EffectiveStatus,
+  EFFECTIVE_STATUS_COLORS,
+  EFFECTIVE_STATUS_NAME,
+  getEffectiveStatus,
+} from "@/lib/valve-effective-status";
 import CardHeader from "@/components/ui/card-header";
 
 type Props = {
@@ -27,11 +32,13 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
     return {
       branchId: branch.id,
       name: branch.name,
-      ใช้งาน: branchValves.filter((v) => v.status === "ใช้งาน").length,
-      ไม่ได้ใช้งาน: branchValves.filter((v) => v.status === "ไม่ได้ใช้งาน").length,
-      ไม่ระบุ: branchValves.filter((v) => v.status === "ไม่ระบุ").length,
+      ใช้งาน: branchValves.filter((v) => getEffectiveStatus(v) === "ใช้งาน").length,
+      ไม่ได้ใช้งาน: branchValves.filter((v) => getEffectiveStatus(v) === "ไม่ได้ใช้งาน").length,
+      ชำรุด: branchValves.filter((v) => getEffectiveStatus(v) === "ชำรุด").length,
     };
   });
+
+  const legendKeys: EffectiveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ชำรุด"];
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
@@ -40,13 +47,13 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
         title={`ข้อมูลแยกรายสาขา (${branches.length} สาขา)`}
         action={
           <div className="hidden items-center gap-3.5 text-xs text-muted-foreground sm:flex">
-            {(Object.keys(STATUS_COLORS) as Array<keyof typeof STATUS_COLORS>).map((key) => (
+            {legendKeys.map((key) => (
               <span key={key} className="flex items-center gap-1.5">
                 <span
                   className="h-2.5 w-2.5 rounded-full"
-                  style={{ background: STATUS_COLORS[key] }}
+                  style={{ background: EFFECTIVE_STATUS_COLORS[key] }}
                 />
-                {STATUS_NAME[key]}
+                {EFFECTIVE_STATUS_NAME[key]}
               </span>
             ))}
           </div>
@@ -86,9 +93,9 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
             />
             <Bar
               dataKey="ใช้งาน"
-              name={STATUS_NAME["ใช้งาน"]}
+              name={EFFECTIVE_STATUS_NAME["ใช้งาน"]}
               stackId="status"
-              fill={STATUS_COLORS["ใช้งาน"]}
+              fill={EFFECTIVE_STATUS_COLORS["ใช้งาน"]}
               isAnimationActive={false}
               onClick={(entry) =>
                 onSelectBranch((entry.payload as { branchId: string }).branchId)
@@ -97,9 +104,9 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
             />
             <Bar
               dataKey="ไม่ได้ใช้งาน"
-              name={STATUS_NAME["ไม่ได้ใช้งาน"]}
+              name={EFFECTIVE_STATUS_NAME["ไม่ได้ใช้งาน"]}
               stackId="status"
-              fill={STATUS_COLORS["ไม่ได้ใช้งาน"]}
+              fill={EFFECTIVE_STATUS_COLORS["ไม่ได้ใช้งาน"]}
               isAnimationActive={false}
               onClick={(entry) =>
                 onSelectBranch((entry.payload as { branchId: string }).branchId)
@@ -107,10 +114,10 @@ export default function ValvesByBranchChart({ valves, branches, onSelectBranch }
               cursor="pointer"
             />
             <Bar
-              dataKey="ไม่ระบุ"
-              name={STATUS_NAME["ไม่ระบุ"]}
+              dataKey="ชำรุด"
+              name={EFFECTIVE_STATUS_NAME["ชำรุด"]}
               stackId="status"
-              fill={STATUS_COLORS["ไม่ระบุ"]}
+              fill={EFFECTIVE_STATUS_COLORS["ชำรุด"]}
               radius={[3, 3, 0, 0]}
               isAnimationActive={false}
               onClick={(entry) =>

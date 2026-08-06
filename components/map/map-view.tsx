@@ -5,10 +5,10 @@ import { MapIcon, ChevronDown, Building2 } from "lucide-react";
 
 import ValveMapClient from "@/components/map/valve-map-client";
 import AddValveModal from "@/components/map/add-valve-modal";
-import { STATUS_COLORS, STATUS_NAME } from "@/lib/valve-status";
-import { Branch, ValveStatus, ValveWithBranch } from "@/types";
+import { EffectiveStatus, EFFECTIVE_STATUS_COLORS, EFFECTIVE_STATUS_NAME } from "@/lib/valve-effective-status";
+import { Branch, ValveWithBranch } from "@/types";
 
-const STATUS_LEGEND: ValveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ไม่ระบุ"];
+const STATUS_LEGEND: EffectiveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ชำรุด"];
 
 type Props = {
   valves: ValveWithBranch[];
@@ -46,9 +46,9 @@ export default function MapView({ valves, branches }: Props) {
               <span key={status} className="flex items-center gap-1.5">
                 <span
                   className="h-2.5 w-2.5 rounded-full"
-                  style={{ background: STATUS_COLORS[status] }}
+                  style={{ background: EFFECTIVE_STATUS_COLORS[status] }}
                 />
-                {STATUS_NAME[status]}
+                {EFFECTIVE_STATUS_NAME[status]}
               </span>
             ))}
           </div>

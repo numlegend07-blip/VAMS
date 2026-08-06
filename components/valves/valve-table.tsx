@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
-import { ValveWithBranch, ValveStatus } from "@/types";
+import { ValveWithBranch, Valve } from "@/types";
 import { cn } from "@/lib/utils";
-import { STATUS_BADGE, STATUS_LABEL } from "@/lib/valve-status";
+import { EFFECTIVE_STATUS_BADGE, EFFECTIVE_STATUS_LABEL, getEffectiveStatus } from "@/lib/valve-effective-status";
 
 type ValveTableProps = {
   valves: ValveWithBranch[];
@@ -54,7 +54,7 @@ export default function ValveTable({ valves }: ValveTableProps) {
                 {valve.size_mm ? `${valve.size_mm} มม.` : "-"}
               </td>
               <td className="px-4 py-3">
-                <StatusBadge status={valve.status} />
+                <StatusBadge valve={valve} />
               </td>
               <td className="px-4 py-3 text-right">
                 <Link href={`/valves/${valve.id}`}>
@@ -72,15 +72,17 @@ export default function ValveTable({ valves }: ValveTableProps) {
   );
 }
 
-function StatusBadge({ status }: { status: ValveStatus }) {
+function StatusBadge({ valve }: { valve: Pick<Valve, "status" | "inactive_reason"> }) {
+  const effective = getEffectiveStatus(valve);
+
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
-        STATUS_BADGE[status]
+        EFFECTIVE_STATUS_BADGE[effective]
       )}
     >
-      {STATUS_LABEL[status]}
+      {EFFECTIVE_STATUS_LABEL[effective]}
     </span>
   );
 }

@@ -56,7 +56,11 @@ export async function getPMStats(): Promise<PMStats> {
     supabase.from("pm_history").select("*", { count: "exact", head: true }),
     supabase.from("pm_history").select("*", { count: "exact", head: true }).gte("performed_at", startOfMonthStr),
     supabase.from("valves").select("*", { count: "exact", head: true }),
-    supabase.from("valves").select("*", { count: "exact", head: true }).eq("status", "ไม่ได้ใช้งาน"),
+    supabase
+      .from("valves")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "ไม่ได้ใช้งาน")
+      .ilike("inactive_reason", "%ชำรุด%"),
   ]);
 
   const firstError = [totalRes, monthRes, valveTotalRes, brokenRes].find((r) => r.error)?.error;

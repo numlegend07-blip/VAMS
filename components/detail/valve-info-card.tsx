@@ -6,7 +6,7 @@ import { ArrowLeft, MapPin, Building2, CalendarDays, Settings2, Plus } from "luc
 
 import { PMRecord, ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
-import { STATUS_BADGE, STATUS_LABEL } from "@/lib/valve-status";
+import { EFFECTIVE_STATUS_BADGE, EFFECTIVE_STATUS_LABEL, getEffectiveStatus } from "@/lib/valve-effective-status";
 
 import DetailSpecCard from "./detail-spec-card";
 import ActionButtons from "./action-buttons";
@@ -23,8 +23,8 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
   const [showPM, setShowPM] = useState(false);
   const [showPMForm, setShowPMForm] = useState(false);
 
-  const active = valve.status === "ใช้งาน";
-  const healthScore = active ? 92 : valve.status === "ไม่ระบุ" ? 60 : 40;
+  const effective = getEffectiveStatus(valve);
+  const healthScore = effective === "ใช้งาน" ? 92 : effective === "ชำรุด" ? 25 : 55;
 
   return (
     <div>
@@ -54,10 +54,10 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
             <span
               className={cn(
                 "mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
-                STATUS_BADGE[valve.status]
+                EFFECTIVE_STATUS_BADGE[effective]
               )}
             >
-              {STATUS_LABEL[valve.status]}
+              {EFFECTIVE_STATUS_LABEL[effective]}
             </span>
 
             <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-2">

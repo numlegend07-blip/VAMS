@@ -1,6 +1,7 @@
 import { Gauge, CircleCheck, CircleX, Wrench } from "lucide-react";
 
 import { ValveWithBranch } from "@/types";
+import { getEffectiveStatus } from "@/lib/valve-effective-status";
 
 type Props = {
   valves: ValveWithBranch[];
@@ -9,9 +10,9 @@ type Props = {
 export default function DashboardCards({ valves }: Props) {
   const total = valves.length;
 
-  const active = valves.filter((v) => v.status === "ใช้งาน").length;
-  const inactive = valves.filter((v) => v.status === "ไม่ได้ใช้งาน").length;
-  const broken = valves.filter((v) => v.status === "ไม่ระบุ").length;
+  const active = valves.filter((v) => getEffectiveStatus(v) === "ใช้งาน").length;
+  const inactive = valves.filter((v) => getEffectiveStatus(v) === "ไม่ได้ใช้งาน").length;
+  const broken = valves.filter((v) => getEffectiveStatus(v) === "ชำรุด").length;
 
   const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
 
