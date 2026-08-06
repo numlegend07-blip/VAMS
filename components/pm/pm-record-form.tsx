@@ -19,12 +19,12 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { PM_TYPES } from "@/lib/pm-type";
-import { STATUS_LABEL } from "@/lib/valve-status";
+import { EFFECTIVE_STATUS_LABEL, EffectiveStatus } from "@/lib/valve-effective-status";
 import CardHeader from "@/components/ui/card-header";
 import { Branch, Profile, PMRecordWithValve, PMType, ValveStatus, ValveWithBranch } from "@/types";
 import { PMStats } from "@/lib/data/pm-history";
 
-const STATUSES: ValveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ไม่ระบุ"];
+const STATUSES: EffectiveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ชำรุด"];
 
 const NEXT_DUE_PRESETS = [
   { label: "30 วัน", days: 30 },
@@ -48,7 +48,8 @@ type FormState = {
   assetCode: string;
   performedAt: string;
   pmType: PMType;
-  statusAfter: ValveStatus;
+  statusAfter: EffectiveStatus;
+  inactiveReason: string;
   nextDueAt: string;
   nextDuePreset: string;
   pressureIn: string;
@@ -67,6 +68,7 @@ function emptyForm(): FormState {
     performedAt: today(),
     pmType: PM_TYPES[0],
     statusAfter: "ใช้งาน",
+    inactiveReason: "",
     nextDueAt: addDays(today(), 30),
     nextDuePreset: "30",
     pressureIn: "",
@@ -130,6 +132,14 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
     }));
   }
 
+  function handleStatusChange(status: EffectiveStatus) {
+    setForm((prev) => ({
+      ...prev,
+      statusAfter: status,
+      ...(status === "ใช้งาน" && { inactiveReason: "" }),
+    }));
+  }
+
   function clearForm() {
     setForm(emptyForm());
     setBeforeFile(null);
@@ -175,6 +185,25 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
       setError("กรุณากรอกความดันขาเข้าและขาออก");
       return;
     }
+    if (form.statusAfter === "ไม่ได้ใช้งาน" && !form.inactiveReason.trim()) {
+      setError("กรุณาระบุเหตุผลที่ไม่ได้ใช้งาน");
+      return;
+    }
+    if (form.statusAfter === "ไม่ได้ใช้งาน" && form.inactiveReason.includes("ชำรุด")) {
+      setError('เหตุผลมีคำว่า "ชำรุด" — กรุณาเลือกสถานะ "ชำรุด" แทน');
+      return;
+    }
+
+    const dbStatus: ValveStatus = form.statusAfter === "ชำรุด" ? "ไม่ได้ใช้งาน" : form.statusAfter;
+    const trimmedReason = form.inactiveReason.trim();
+    const finalReason =
+      form.statusAfter === "ใช้งาน"
+        ? null
+        : form.statusAfter === "ชำรุด"
+          ? trimmedReason
+            ? (trimmedReason.includes("ชำรุด") ? trimmedReason : `ชำรุด ${trimmedReason}`)
+            : "ชำรุด"
+          : trimmedReason;
 
     setSubmitting(true);
     try {
@@ -201,7 +230,7 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
           work_performed: form.workPerformed.trim() || null,
           parts_used: form.partsUsed.trim() || null,
           next_due_at: form.nextDueAt || null,
-          status_after: form.statusAfter,
+          status_after: dbStatus,
           photo_before_url: photoBeforeUrl,
           photo_after_url: photoAfterUrl,
           created_by: profile?.id ?? null,
@@ -216,7 +245,7 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
 
       const { error: statusError } = await supabase
         .from("valves")
-        .update({ status: form.statusAfter })
+        .update({ status: dbStatus, inactive_reason: finalReason })
         .eq("id", matchedValve.id);
 
       if (statusError) {
@@ -339,16 +368,38 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
               <Field label="สถานะวาล์วหลังการตรวจ" required>
                 <select
                   value={form.statusAfter}
-                  onChange={(e) => set("statusAfter", e.target.value as ValveStatus)}
+                  onChange={(e) => handleStatusChange(e.target.value as EffectiveStatus)}
                   className={inputClass}
                 >
                   {STATUSES.map((status) => (
                     <option key={status} value={status}>
-                      {STATUS_LABEL[status]}
+                      {EFFECTIVE_STATUS_LABEL[status]}
                     </option>
                   ))}
                 </select>
               </Field>
+
+              {form.statusAfter !== "ใช้งาน" && (
+                <div className="sm:col-span-2">
+                  <Field label={form.statusAfter === "ชำรุด" ? "รายละเอียดอาการชำรุด" : "เหตุผลที่ไม่ได้ใช้งาน"} required={form.statusAfter === "ไม่ได้ใช้งาน"}>
+                    <input
+                      value={form.inactiveReason}
+                      onChange={(e) => set("inactiveReason", e.target.value)}
+                      placeholder={
+                        form.statusAfter === "ชำรุด"
+                          ? 'รายละเอียดเพิ่มเติม (ถ้ามี) เช่น "ตัวตั้งเวลาใช้ไม่ได้"'
+                          : "เช่น ปิดน้ำชั่วคราว, ยังไม่เปิดใช้งาน"
+                      }
+                      className={inputClass}
+                    />
+                    {form.statusAfter === "ชำรุด" && (
+                      <p className="mt-1 text-[10.5px] text-muted-foreground">
+                        ระบบจะบันทึกเหตุผลโดยขึ้นต้นด้วยคำว่า &quot;ชำรุด&quot; เสมอ
+                      </p>
+                    )}
+                  </Field>
+                </div>
+              )}
 
               <Field label="กำหนดบำรุงครั้งต่อไป">
                 <div className="flex items-center gap-1.5">
