@@ -5,8 +5,10 @@ import { Menu, RotateCw, UserRound, LogOut } from "lucide-react";
 
 import ThemeToggle from "./theme-toggle";
 import Clock from "./clock";
+import NotificationBell from "./notification-bell";
 import { createClient } from "@/lib/supabase/client";
 import { Profile } from "@/types";
+import { DueValve } from "@/lib/data/pm-history";
 
 const TITLES: Record<string, string> = {
   "/valves": "แดชบอร์ดภาพรวม",
@@ -21,9 +23,10 @@ const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/va
 type Props = {
   onMenuClick?: () => void;
   profile: Profile | null;
+  dueValves: DueValve[];
 };
 
-export default function Navbar({ onMenuClick, profile }: Props) {
+export default function Navbar({ onMenuClick, profile, dueValves }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -60,6 +63,8 @@ export default function Navbar({ onMenuClick, profile }: Props) {
 
       <div className="flex shrink-0 items-center gap-1.5">
         <Clock />
+
+        <NotificationBell dueValves={dueValves} />
 
         <button
           type="button"
