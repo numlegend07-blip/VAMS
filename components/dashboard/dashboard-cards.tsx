@@ -1,13 +1,15 @@
 import { Gauge, CircleCheck, CircleX, Wrench } from "lucide-react";
 
 import { ValveWithBranch } from "@/types";
-import { getEffectiveStatus } from "@/lib/valve-effective-status";
+import { EffectiveStatus, getEffectiveStatus } from "@/lib/valve-effective-status";
 
 type Props = {
   valves: ValveWithBranch[];
+  status: EffectiveStatus | "all";
+  onStatusChange: (status: EffectiveStatus | "all") => void;
 };
 
-export default function DashboardCards({ valves }: Props) {
+export default function DashboardCards({ valves, status, onStatusChange }: Props) {
   const total = valves.length;
 
   const active = valves.filter((v) => getEffectiveStatus(v) === "ใช้งาน").length;
@@ -16,9 +18,19 @@ export default function DashboardCards({ valves }: Props) {
 
   const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
 
+  const toggle = (value: EffectiveStatus) => onStatusChange(status === value ? "all" : value);
+
   return (
     <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-      <Card title="จำนวนวาล์ว" value={String(total)} sub="ทั้งหมดในเขต 10" icon={Gauge} color="primary" />
+      <Card
+        title="จำนวนวาล์ว"
+        value={String(total)}
+        sub="ทั้งหมดในเขต 10"
+        icon={Gauge}
+        color="primary"
+        active={status === "all"}
+        onClick={() => onStatusChange("all")}
+      />
 
       <Card
         title="ใช้งาน"
@@ -26,6 +38,8 @@ export default function DashboardCards({ valves }: Props) {
         sub={`${pct(active)}% ของทั้งหมด`}
         icon={CircleCheck}
         color="success"
+        active={status === "ใช้งาน"}
+        onClick={() => toggle("ใช้งาน")}
       />
 
       <Card
@@ -34,6 +48,8 @@ export default function DashboardCards({ valves }: Props) {
         sub={`${pct(inactive)}% ของทั้งหมด`}
         icon={CircleX}
         color="purple"
+        active={status === "ไม่ได้ใช้งาน"}
+        onClick={() => toggle("ไม่ได้ใช้งาน")}
       />
 
       <Card
@@ -42,6 +58,8 @@ export default function DashboardCards({ valves }: Props) {
         sub={`${pct(broken)}% ของทั้งหมด`}
         icon={Wrench}
         color="danger"
+        active={status === "ชำรุด"}
+        onClick={() => toggle("ชำรุด")}
       />
     </div>
   );
@@ -60,17 +78,27 @@ function Card({
   sub,
   icon: Icon,
   color,
+  active,
+  onClick,
 }: {
   title: string;
   value: string;
   sub: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   color: keyof typeof COLOR_STYLES;
+  active: boolean;
+  onClick: () => void;
 }) {
   const s = COLOR_STYLES[color];
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-surface p-4.5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-xl border bg-surface p-4.5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+        active ? "border-primary ring-2 ring-primary-subtle" : "border-border"
+      }`}
+    >
       <div
         className={`pointer-events-none absolute -right-5 -top-5 h-22.5 w-22.5 rounded-full ${s.blob}`}
       />
@@ -86,6 +114,6 @@ function Card({
         </div>
         <div className="mt-1.5 text-[11px] font-medium text-muted-foreground">{sub}</div>
       </div>
-    </div>
+    </button>
   );
 }

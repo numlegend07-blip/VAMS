@@ -10,6 +10,7 @@ import ValvesByBranchChart from "@/components/charts/valves-by-branch-chart";
 import ValveExplorer from "@/components/valves/valve-explorer";
 
 import { Branch, ValveWithBranch } from "@/types";
+import { EffectiveStatus } from "@/lib/valve-effective-status";
 
 type Props = {
   valves: ValveWithBranch[];
@@ -19,8 +20,9 @@ type Props = {
 
 export default function DashboardView({ valves, branches, telegramJoin }: Props) {
   const [branchId, setBranchId] = useState<string | "all">("all");
+  const [status, setStatus] = useState<EffectiveStatus | "all">("all");
 
-  const filteredValves = useMemo(() => {
+  const branchValves = useMemo(() => {
     if (branchId === "all") return valves;
     return valves.filter((v) => v.branch_id === branchId);
   }, [valves, branchId]);
@@ -31,11 +33,11 @@ export default function DashboardView({ valves, branches, telegramJoin }: Props)
 
       <DashboardTitleBar branches={branches} value={branchId} onChange={setBranchId} />
 
-      <DashboardCards valves={filteredValves} />
+      <DashboardCards valves={branchValves} status={status} onStatusChange={setStatus} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <ValveStatusChart valves={filteredValves} />
+          <ValveStatusChart valves={branchValves} />
         </div>
         <div className="lg:col-span-3">
           <ValvesByBranchChart
@@ -46,7 +48,7 @@ export default function DashboardView({ valves, branches, telegramJoin }: Props)
         </div>
       </div>
 
-      <ValveExplorer valves={filteredValves} />
+      <ValveExplorer valves={branchValves} status={status} onStatusChange={setStatus} />
     </div>
   );
 }

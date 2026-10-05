@@ -32,6 +32,7 @@ export default function ValveTable({ valves }: ValveTableProps) {
             <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">ยี่ห้อ</th>
             <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">ขนาด</th>
             <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">สถานะ</th>
+            <th className="px-4 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground">เหตุผล</th>
             <th className="px-4 py-2.5" />
           </tr>
         </thead>
@@ -55,6 +56,9 @@ export default function ValveTable({ valves }: ValveTableProps) {
               </td>
               <td className="px-4 py-3">
                 <StatusBadge valve={valve} />
+              </td>
+              <td className="max-w-50 truncate px-4 py-3 text-muted-foreground" title={valve.inactive_reason ?? undefined}>
+                {valve.inactive_reason || "-"}
               </td>
               <td className="px-4 py-3 text-right">
                 <Link href={`/valves/${valve.id}`}>
