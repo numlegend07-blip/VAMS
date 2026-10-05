@@ -1,5 +1,6 @@
 import { getValveById } from "@/lib/data/valves";
 import { getPMHistory } from "@/lib/data/pm-history";
+import { getBranches } from "@/lib/data/branches";
 import ValveInfoCard from "@/components/detail/valve-info-card";
 
 type Props = {
@@ -26,11 +27,11 @@ export default async function ValveDetailPage({ params }: Props) {
     );
   }
 
-  const pmRecords = await getPMHistory(id);
+  const [pmRecords, branches] = await Promise.all([getPMHistory(id), getBranches()]);
 
   return (
     <div className="mx-auto max-w-7xl">
-      <ValveInfoCard valve={valve} pmRecords={pmRecords} />
+      <ValveInfoCard valve={valve} pmRecords={pmRecords} branches={branches} />
     </div>
   );
 }

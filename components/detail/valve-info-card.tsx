@@ -4,12 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Building2, CalendarDays, Settings2, Plus } from "lucide-react";
 
-import { PMRecord, ValveWithBranch } from "@/types";
+import { Branch, PMRecord, ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
 import { EFFECTIVE_STATUS_BADGE, EFFECTIVE_STATUS_LABEL, getEffectiveStatus } from "@/lib/valve-effective-status";
 
 import DetailSpecCard from "./detail-spec-card";
 import ActionButtons from "./action-buttons";
+import EditValveModal from "./edit-valve-modal";
 import HealthCard from "./health-card";
 import PMTimeline from "../pm/pm-timeline";
 import PMForm from "../pm/pm-form";
@@ -17,9 +18,10 @@ import PMForm from "../pm/pm-form";
 type Props = {
   valve: ValveWithBranch;
   pmRecords: PMRecord[];
+  branches: Branch[];
 };
 
-export default function ValveInfoCard({ valve, pmRecords }: Props) {
+export default function ValveInfoCard({ valve, pmRecords, branches }: Props) {
   const [showPM, setShowPM] = useState(false);
   const [showPMForm, setShowPMForm] = useState(false);
 
@@ -28,13 +30,17 @@ export default function ValveInfoCard({ valve, pmRecords }: Props) {
 
   return (
     <div>
-      <Link
-        href="/valves"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
-        กลับไปหน้ารายการ
-      </Link>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <Link
+          href="/valves"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" strokeWidth={2.25} />
+          กลับไปหน้ารายการ
+        </Link>
+
+        <EditValveModal valve={valve} branches={branches} />
+      </div>
 
       <div className="rounded-xl border border-border bg-surface p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
