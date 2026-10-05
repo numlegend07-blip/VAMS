@@ -15,8 +15,9 @@ const ValveMap = dynamic(() => import("./valve-map"), {
 
 type Props = {
   valves: ValveWithBranch[];
+  editable?: boolean;
 };
 
-export default function ValveMapClient({ valves }: Props) {
-  return <ValveMap valves={valves} />;
+export default function ValveMapClient({ valves, editable }: Props) {
+  return <ValveMap valves={valves} editable={editable} />;
 }

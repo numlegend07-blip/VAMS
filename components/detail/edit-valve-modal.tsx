@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Loader2, Pencil, X } from "lucide-react";
+import { Camera, Loader2, MapPin, Pencil, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Branch, ValveWithBranch } from "@/types";
@@ -76,6 +76,8 @@ export default function EditValveModal({ valve, branches }: Props) {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const photoPreviewUrl = photoFile ? URL.createObjectURL(photoFile) : valve.image_url;
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -85,6 +87,7 @@ export default function EditValveModal({ valve, branches }: Props) {
     setForm(toFormState(valve));
     setError(null);
     setPhotoFile(null);
+    setLocationError(null);
     setOpen(true);
   }
 
@@ -92,6 +95,34 @@ export default function EditValveModal({ valve, branches }: Props) {
     setOpen(false);
     setError(null);
     setPhotoFile(null);
+    setLocationError(null);
+    setLocating(false);
+  }
+
+  function handleUseLocation() {
+    if (!navigator.geolocation) {
+      setLocationError("อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง");
+      return;
+    }
+
+    setLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        set("latitude", pos.coords.latitude.toFixed(6));
+        set("longitude", pos.coords.longitude.toFixed(6));
+        setLocating(false);
+      },
+      (err) => {
+        setLocationError(
+          err.code === err.PERMISSION_DENIED
+            ? "กรุณาอนุญาตการเข้าถึงตำแหน่งในเบราว์เซอร์"
+            : "ไม่สามารถระบุตำแหน่งได้ ลองใหม่อีกครั้ง"
+        );
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -293,6 +324,23 @@ export default function EditValveModal({ valve, branches }: Props) {
                     className={inputClass}
                   />
                 </Field>
+
+                <div className="sm:col-span-2 -mt-1.5 flex flex-col gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleUseLocation}
+                    disabled={locating}
+                    className="flex w-fit items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+                  >
+                    {locating ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <MapPin className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    )}
+                    {locating ? "กำลังระบุตำแหน่ง..." : "ใช้ตำแหน่งปัจจุบัน"}
+                  </button>
+                  {locationError && <p className="text-[11px] text-danger">{locationError}</p>}
+                </div>
 
                 <Field label="Pressure In (bar)">
                   <input

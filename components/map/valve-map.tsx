@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { useTheme } from "next-themes";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Check, Loader2, X as XIcon } from "lucide-react";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import { createClient } from "@/lib/supabase/client";
@@ -23,8 +24,25 @@ const LIGHT_TILES =
 const DARK_TILES =
   "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
 
+function statusIcon(color: string) {
+  return L.divIcon({
+    className: "",
+    html: `<div style="width:14px;height:14px;border-radius:9999px;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);"></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+  });
+}
+
+const STATUS_ICONS = {
+  ใช้งาน: statusIcon(EFFECTIVE_STATUS_COLORS["ใช้งาน"]),
+  ไม่ได้ใช้งาน: statusIcon(EFFECTIVE_STATUS_COLORS["ไม่ได้ใช้งาน"]),
+  ชำรุด: statusIcon(EFFECTIVE_STATUS_COLORS["ชำรุด"]),
+};
+
 type Props = {
   valves: ValveWithBranch[];
+  editable?: boolean;
 };
 
 function FitBounds({ bounds }: { bounds: [number, number][] }) {
@@ -42,15 +60,61 @@ function FitBounds({ bounds }: { bounds: [number, number][] }) {
   return null;
 }
 
-export default function ValveMap({ valves }: Props) {
+export default function ValveMap({ valves, editable = false }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+
+  const [positions, setPositions] = useState<Record<string, [number, number]>>({});
+  const [confirming, setConfirming] = useState<Record<string, boolean>>({});
+  const [saveStatus, setSaveStatus] = useState<Record<string, "saving" | "error" | undefined>>({});
 
   const points = valves
     .filter((v) => v.latitude != null && v.longitude != null)
     .map((v) => ({ ...v, latitude: v.latitude as number, longitude: v.longitude as number }));
 
   const bounds = points.map((v) => [v.latitude, v.longitude] as [number, number]);
+
+  async function handleSavePosition(id: string) {
+    const pos = positions[id];
+    if (!pos) return;
+
+    setSaveStatus((s) => ({ ...s, [id]: "saving" }));
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("valves")
+      .update({ latitude: pos[0], longitude: pos[1] })
+      .eq("id", id);
+
+    if (error) {
+      setSaveStatus((s) => ({ ...s, [id]: "error" }));
+      return;
+    }
+
+    setSaveStatus((s) => ({ ...s, [id]: undefined }));
+    setConfirming((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }
+
+  function handleCancelPosition(id: string) {
+    setPositions((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setConfirming((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setSaveStatus((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }
 
   return (
     <MapContainer
@@ -67,19 +131,63 @@ export default function ValveMap({ valves }: Props) {
 
       {points.map((valve) => {
         const effective = getEffectiveStatus(valve);
+        const position = positions[valve.id] ?? [valve.latitude, valve.longitude];
+        const isPending = confirming[valve.id] ?? false;
+        const status = saveStatus[valve.id];
+
         return (
-        <CircleMarker
+        <Marker
           key={valve.id}
-          center={[valve.latitude, valve.longitude]}
-          radius={7}
-          pathOptions={{
-            color: "#ffffff",
-            weight: 2,
-            fillColor: EFFECTIVE_STATUS_COLORS[effective],
-            fillOpacity: 1,
+          position={position}
+          icon={STATUS_ICONS[effective]}
+          draggable={editable}
+          eventHandlers={{
+            dragend: (e) => {
+              const marker = e.target as L.Marker;
+              const { lat, lng } = marker.getLatLng();
+              setPositions((prev) => ({ ...prev, [valve.id]: [lat, lng] }));
+              setConfirming((prev) => ({ ...prev, [valve.id]: true }));
+              marker.openPopup();
+            },
           }}
         >
           <Popup minWidth={220} maxWidth={280}>
+            {editable && isPending && (
+              <div className="mb-2.5 rounded-lg border border-warning/40 bg-warning-subtle p-2.5">
+                <div className="text-[11px] font-bold text-foreground">ตำแหน่งใหม่ที่ลากไว้</div>
+                <div className="text-[10.5px] text-muted-foreground">
+                  {position[0].toFixed(6)}, {position[1].toFixed(6)}
+                </div>
+                <div className="mt-1.5 flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSavePosition(valve.id)}
+                    disabled={status === "saving"}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-md bg-primary py-1 text-[11px] font-semibold text-primary-foreground disabled:opacity-60"
+                  >
+                    {status === "saving" ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Check className="h-3 w-3" strokeWidth={2.5} />
+                    )}
+                    บันทึกตำแหน่งใหม่
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCancelPosition(valve.id)}
+                    disabled={status === "saving"}
+                    className="flex items-center justify-center gap-1 rounded-md border border-border py-1 px-2 text-[11px] font-semibold text-foreground disabled:opacity-60"
+                  >
+                    <XIcon className="h-3 w-3" strokeWidth={2.5} />
+                    ยกเลิก
+                  </button>
+                </div>
+                {status === "error" && (
+                  <p className="mt-1 text-[10.5px] text-danger">บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง</p>
+                )}
+              </div>
+            )}
+
             <div className="text-foreground">
               <div
                 className={cn(
@@ -125,7 +233,7 @@ export default function ValveMap({ valves }: Props) {
               <ValvePhotoBlock valve={valve} />
             </div>
           </Popup>
-        </CircleMarker>
+        </Marker>
         );
       })}
     </MapContainer>

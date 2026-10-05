@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MapIcon, ChevronDown, Building2 } from "lucide-react";
+import { MapIcon, ChevronDown, Building2, MapPinned } from "lucide-react";
 
 import ValveMapClient from "@/components/map/valve-map-client";
 import AddValveModal from "@/components/map/add-valve-modal";
+import { cn } from "@/lib/utils";
 import { EffectiveStatus, EFFECTIVE_STATUS_COLORS, EFFECTIVE_STATUS_NAME } from "@/lib/valve-effective-status";
 import { Branch, ValveWithBranch } from "@/types";
 
@@ -17,6 +18,7 @@ type Props = {
 
 export default function MapView({ valves, branches }: Props) {
   const [branchId, setBranchId] = useState<string | "all">("all");
+  const [editMode, setEditMode] = useState(false);
 
   const filteredValves = useMemo(() => {
     if (branchId === "all") return valves;
@@ -75,13 +77,33 @@ export default function MapView({ valves, branches }: Props) {
             />
           </div>
 
+          <button
+            type="button"
+            onClick={() => setEditMode((v) => !v)}
+            className={cn(
+              "flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors",
+              editMode
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-surface text-foreground hover:bg-surface-muted"
+            )}
+          >
+            <MapPinned className="h-4 w-4" strokeWidth={2.25} />
+            {editMode ? "กำลังแก้ไขพิกัด" : "แก้ไขพิกัด"}
+          </button>
+
           <AddValveModal branches={branches} />
         </div>
       </div>
 
+      {editMode && (
+        <div className="rounded-xl border border-primary/30 bg-primary-subtle px-4.5 py-3 text-[13px] font-medium text-primary">
+          โหมดแก้ไขพิกัด: ลากหมุดบนแผนที่ไปยังตำแหน่งที่ถูกต้อง แล้วกด &ldquo;บันทึกตำแหน่งใหม่&rdquo; ในกล่องข้อมูลที่เปิดขึ้น
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
         <div style={{ height: "70vh", minHeight: 480 }}>
-          <ValveMapClient valves={filteredValves} />
+          <ValveMapClient valves={filteredValves} editable={editMode} />
         </div>
       </div>
     </div>
