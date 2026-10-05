@@ -5,8 +5,22 @@ import { useRouter } from "next/navigation";
 import { Camera, Loader2, Pencil, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
-import { Branch, ValveStatus, ValveWithBranch } from "@/types";
+import { Branch, ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
+import {
+  EFFECTIVE_STATUS_LABEL,
+  EffectiveStatus,
+  getEffectiveStatus,
+  isBrokenReason,
+} from "@/lib/valve-effective-status";
+
+const STATUS_OPTIONS: EffectiveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ชำรุด"];
+
+const REASON_PLACEHOLDER: Record<EffectiveStatus, string> = {
+  ใช้งาน: "",
+  ไม่ได้ใช้งาน: "เช่น ปิดปรับปรุงพื้นที่, ระงับใช้ชั่วคราว",
+  ชำรุด: "เช่น ยางซีลรั่ว, มอเตอร์เสีย, รอเปลี่ยนอะไหล่",
+};
 
 type FormState = {
   asset_code: string;
@@ -23,7 +37,7 @@ type FormState = {
   pressure_out: string;
   flow_rate: string;
   remark: string;
-  status: ValveStatus;
+  status: EffectiveStatus;
   inactive_reason: string;
 };
 
@@ -43,7 +57,7 @@ function toFormState(valve: ValveWithBranch): FormState {
     pressure_out: valve.pressure_out != null ? String(valve.pressure_out) : "",
     flow_rate: valve.flow_rate != null ? String(valve.flow_rate) : "",
     remark: valve.remark ?? "",
-    status: valve.status,
+    status: getEffectiveStatus(valve),
     inactive_reason: valve.inactive_reason ?? "",
   };
 }
@@ -108,6 +122,14 @@ export default function EditValveModal({ valve, branches }: Props) {
         imageUrl = supabase.storage.from("valve-images").getPublicUrl(path).data.publicUrl;
       }
 
+      // "ชำรุด" isn't a real status value — it's ไม่ได้ใช้งาน whose reason mentions ชำรุด
+      // (see lib/valve-effective-status.ts). Make sure that substring survives the save
+      // so the dashboard/map keep classifying this valve as ชำรุด.
+      let reason = form.inactive_reason.trim();
+      if (form.status === "ชำรุด" && !isBrokenReason(reason)) {
+        reason = reason ? `ชำรุด - ${reason}` : "ชำรุด";
+      }
+
       const { error: updateError } = await supabase
         .from("valves")
         .update({
@@ -125,8 +147,8 @@ export default function EditValveModal({ valve, branches }: Props) {
           pressure_out: form.pressure_out ? Number(form.pressure_out) : null,
           flow_rate: form.flow_rate ? Number(form.flow_rate) : null,
           remark: form.remark.trim() || null,
-          status: form.status,
-          inactive_reason: form.status === "ใช้งาน" ? null : form.inactive_reason.trim() || null,
+          status: form.status === "ใช้งาน" ? "ใช้งาน" : "ไม่ได้ใช้งาน",
+          inactive_reason: form.status === "ใช้งาน" ? null : reason || null,
           image_url: imageUrl,
         })
         .eq("id", valve.id);
@@ -354,23 +376,33 @@ export default function EditValveModal({ valve, branches }: Props) {
                   <Field label="สถานะวาล์ว">
                     <select
                       value={form.status}
-                      onChange={(e) => set("status", e.target.value as ValveStatus)}
+                      onChange={(e) => {
+                        const next = e.target.value as EffectiveStatus;
+                        setForm((prev) => ({
+                          ...prev,
+                          status: next,
+                          inactive_reason:
+                            next === "ชำรุด" && !prev.inactive_reason.trim() ? "ชำรุด" : prev.inactive_reason,
+                        }));
+                      }}
                       className={inputClass}
                     >
-                      <option value="ใช้งาน">✅ ใช้งานปกติ</option>
-                      <option value="ไม่ได้ใช้งาน">🔴 ไม่ได้ใช้งาน</option>
-                      <option value="ไม่ระบุ">🟣 ไม่ระบุสถานะ</option>
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s} value={s}>
+                          {EFFECTIVE_STATUS_LABEL[s]}
+                        </option>
+                      ))}
                     </select>
                   </Field>
                 </div>
 
                 {form.status !== "ใช้งาน" && (
                   <div className="sm:col-span-2">
-                    <Field label="เหตุผลที่ไม่ได้ใช้งาน / ชำรุด">
+                    <Field label={form.status === "ชำรุด" ? "รายละเอียดอาการชำรุด" : "เหตุผลที่ไม่ได้ใช้งาน"}>
                       <textarea
                         value={form.inactive_reason}
                         onChange={(e) => set("inactive_reason", e.target.value)}
-                        placeholder="เช่น ชำรุด รอซ่อม, ปิดปรับปรุงพื้นที่"
+                        placeholder={REASON_PLACEHOLDER[form.status]}
                         rows={2}
                         className={inputClass}
                       />
