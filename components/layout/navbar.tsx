@@ -15,10 +15,11 @@ const TITLES: Record<string, string> = {
   "/valves/map": "แผนที่จุดติดตั้ง",
   "/valves/pm": "บันทึกข้อมูลการบำรุงรักษา",
   "/valves/history": "ประวัติการบำรุงรักษา",
+  "/valves/reports": "รายงาน",
   "/valves/settings": "ตั้งค่า",
 };
 
-const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/settings"];
+const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/reports", "/valves/settings"];
 
 type Props = {
   onMenuClick?: () => void;
@@ -44,7 +45,7 @@ export default function Navbar({ onMenuClick, profile, dueValves }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface px-4 md:px-5">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-surface px-4 print:hidden md:px-5">
       <button
         type="button"
         onClick={onMenuClick}

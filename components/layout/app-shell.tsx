@@ -21,7 +21,7 @@ export default function AppShell({ children, profile, dueValves }: Props) {
       <Sidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} profile={profile} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Navbar onMenuClick={() => setMobileNavOpen((v) => !v)} profile={profile} dueValves={dueValves} />
-        <main className="flex-1 bg-background px-5 py-6 md:px-8 md:py-8">{children}</main>
+        <main className="flex-1 bg-background px-5 py-6 print:p-0 md:px-8 md:py-8">{children}</main>
       </div>
     </div>
   );

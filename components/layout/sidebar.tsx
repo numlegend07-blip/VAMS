@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { isSuperAdmin } from "@/lib/auth";
 import { Profile } from "@/types";
 
-const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history"];
+const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/reports"];
 
 type NavItem = {
   label: string;
@@ -45,7 +45,7 @@ function getSections(canManageSettings: boolean): NavSection[] {
       items: [
         { label: "บันทึกซ่อมบำรุง (PM)", href: "/valves/pm", icon: ClipboardList },
         { label: "ประวัติการบำรุงรักษา", href: "/valves/history", icon: History },
-        { label: "รายงาน", href: null, icon: BarChart3 },
+        { label: "รายงาน", href: "/valves/reports", icon: BarChart3 },
       ],
     },
     {
@@ -83,7 +83,7 @@ export default function Sidebar({ open = false, onClose, profile }: Props) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-67 shrink-0 flex-col border-r border-border bg-surface shadow-lg transition-transform duration-300 md:sticky md:top-0 md:z-0 md:h-screen md:translate-x-0 md:shadow-none",
+          "fixed inset-y-0 left-0 z-50 flex w-67 shrink-0 flex-col border-r border-border bg-surface shadow-lg transition-transform duration-300 print:hidden md:sticky md:top-0 md:z-0 md:h-screen md:translate-x-0 md:shadow-none",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
