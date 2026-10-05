@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { useTheme } from "next-themes";
-import { Camera, Check, Loader2, X as XIcon } from "lucide-react";
+import { Camera, Check, Loader2, Trash2, X as XIcon } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -261,7 +261,29 @@ function ValvePhotoBlock({ valve }: { valve: ValveWithBranch }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    if (!window.confirm("ลบรูปภาพนี้ใช่หรือไม่?")) return;
+
+    setDeleting(true);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { error: updateError } = await supabase
+        .from("valves")
+        .update({ image_url: null })
+        .eq("id", valve.id);
+      if (updateError) throw new Error(updateError.message);
+
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ลบรูปไม่สำเร็จ");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleFile(file: File) {
     setUploading(true);
@@ -321,19 +343,37 @@ function ValvePhotoBlock({ valve }: { valve: ValveWithBranch }) {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={uploading}
-        className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
-      >
-        {uploading ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <Camera className="h-3.5 w-3.5" strokeWidth={2.25} />
+      <div className="mt-1.5 flex gap-1.5">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading || deleting}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+        >
+          {uploading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Camera className="h-3.5 w-3.5" strokeWidth={2.25} />
+          )}
+          {uploading ? "กำลังอัปโหลด..." : valve.image_url ? "อัปเดตรูปภาพ" : "ถ่าย/แนบรูปภาพ"}
+        </button>
+
+        {valve.image_url && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={uploading || deleting}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-danger transition-colors hover:border-danger hover:bg-danger-subtle disabled:opacity-60"
+          >
+            {deleting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
+            )}
+            ลบรูป
+          </button>
         )}
-        {uploading ? "กำลังอัปโหลด..." : valve.image_url ? "อัปเดตรูปภาพ" : "ถ่าย/แนบรูปภาพ"}
-      </button>
+      </div>
 
       {error && <p className="mt-1 text-[10.5px] text-danger">{error}</p>}
     </div>
