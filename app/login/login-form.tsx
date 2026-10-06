@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 export default function LoginForm() {
-  const router = useRouter();
   const [employeeCode, setEmployeeCode] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -33,12 +31,15 @@ export default function LoginForm() {
 
       if (signInError) {
         setError("รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง");
+        setSubmitting(false);
         return;
       }
 
-      router.push("/valves");
-      router.refresh();
-    } finally {
+      // Hard navigation (not router.push) so the request to /valves is guaranteed
+      // to carry the session cookie Supabase just set — a client-side push can
+      // race ahead of the cookie write and bounce back to /login once.
+      window.location.href = "/valves";
+    } catch {
       setSubmitting(false);
     }
   }
