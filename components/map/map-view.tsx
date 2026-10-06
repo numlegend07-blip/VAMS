@@ -27,23 +27,23 @@ export default function MapView({ valves, branches }: Props) {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
-      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-4.5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-primary">
-            <MapIcon className="h-4.5 w-4.5" strokeWidth={2.25} />
-          </span>
-          <div>
-            <h1 className="text-[15px] font-extrabold text-foreground">
-              แผนที่จุดติดตั้งวาล์ว
-            </h1>
-            <p className="text-[11px] text-muted-foreground">
-              เขต 10 · {filteredValves.length} จุด
-            </p>
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-4.5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3.5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-primary">
+              <MapIcon className="h-4.5 w-4.5" strokeWidth={2.25} />
+            </span>
+            <div>
+              <h1 className="text-[15px] font-extrabold text-foreground">
+                แผนที่จุดติดตั้งวาล์ว
+              </h1>
+              <p className="text-[11px] text-muted-foreground">
+                เขต 10 · {filteredValves.length} จุด
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3.5 text-xs text-muted-foreground">
             {STATUS_LEGEND.map((status) => (
               <span key={status} className="flex items-center gap-1.5">
                 <span
@@ -54,7 +54,9 @@ export default function MapView({ valves, branches }: Props) {
               </span>
             ))}
           </div>
+        </div>
 
+        <div className="flex flex-wrap items-center gap-2.5 border-t border-border pt-3.5">
           <div className="relative">
             <div className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center text-muted-foreground">
               <Building2 className="h-4 w-4" strokeWidth={2.25} />
