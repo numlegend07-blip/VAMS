@@ -45,7 +45,7 @@ function addDays(baseStr: string, days: number) {
 }
 
 type FormState = {
-  assetCode: string;
+  locationQuery: string;
   performedAt: string;
   pmType: PMType;
   statusAfter: EffectiveStatus;
@@ -64,7 +64,7 @@ type FormState = {
 
 function emptyForm(): FormState {
   return {
-    assetCode: "",
+    locationQuery: "",
     performedAt: today(),
     pmType: PM_TYPES[0],
     statusAfter: "ใช้งาน",
@@ -108,14 +108,14 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
   }
 
   const canFilterBranch = profile?.role === "region_admin";
-  const codeChoices = branchFilter ? valves.filter((v) => v.branch_id === branchFilter) : valves;
-  const matchedValve = valves.find((v) => v.asset_code === form.assetCode.trim()) ?? null;
+  const locationChoices = branchFilter ? valves.filter((v) => v.branch_id === branchFilter) : valves;
+  const matchedValve = valves.find((v) => v.location === form.locationQuery.trim()) ?? null;
   const pressureEditable = form.pmType === "ปรับตั้งค่า";
 
   function handleBranchFilterChange(branchId: string) {
     setBranchFilter(branchId);
     if (branchId && matchedValve && matchedValve.branch_id !== branchId) {
-      set("assetCode", "");
+      set("locationQuery", "");
     }
   }
 
@@ -174,7 +174,7 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
     setSuccess(false);
 
     if (!matchedValve) {
-      setError("กรุณากรอกรหัสวาล์วที่มีอยู่ในระบบ");
+      setError("กรุณาเลือกจุดติดตั้งที่มีอยู่ในระบบ");
       return;
     }
     if (!form.performedAt) {
@@ -305,26 +305,26 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
               }
             />
             <div className="grid grid-cols-1 gap-4 p-4.5 sm:grid-cols-2">
-              <Field label="รหัสวาล์ว" required>
+              <Field label="ชื่อจุดติดตั้ง" required>
                 <input
-                  list="pm-valve-codes"
-                  value={form.assetCode}
-                  onChange={(e) => set("assetCode", e.target.value)}
-                  placeholder="เช่น CV-001"
+                  list="pm-valve-locations"
+                  value={form.locationQuery}
+                  onChange={(e) => set("locationQuery", e.target.value)}
+                  placeholder="เช่น หน้าสถานีสูบน้ำบ้านใหม่"
                   className={inputClass}
                 />
-                <datalist id="pm-valve-codes">
-                  {codeChoices
-                    .filter((v) => v.asset_code)
+                <datalist id="pm-valve-locations">
+                  {locationChoices
+                    .filter((v) => v.location)
                     .map((v) => (
-                      <option key={v.id} value={v.asset_code!} />
+                      <option key={v.id} value={v.location!} />
                     ))}
                 </datalist>
-                {form.assetCode.trim() && !matchedValve && (
-                  <p className="mt-1 text-[11px] text-warning">ไม่พบรหัสวาล์วนี้ในระบบ</p>
+                {form.locationQuery.trim() && !matchedValve && (
+                  <p className="mt-1 text-[11px] text-warning">ไม่พบจุดติดตั้งนี้ในระบบ</p>
                 )}
                 {branchFilter && matchedValve && matchedValve.branch_id !== branchFilter && (
-                  <p className="mt-1 text-[11px] text-warning">รหัสนี้ไม่ได้อยู่ในสาขาที่กรองไว้</p>
+                  <p className="mt-1 text-[11px] text-warning">จุดนี้ไม่ได้อยู่ในสาขาที่กรองไว้</p>
                 )}
               </Field>
 
@@ -337,9 +337,9 @@ export default function PMRecordForm({ valves, branches, stats, profile, latest 
                 />
               </Field>
 
-              <Field label="ชื่อจุดติดตั้ง" required>
+              <Field label="รหัสวาล์ว" tag="✓ Auto" tagClassName="bg-success-subtle text-success">
                 <div className={cn(inputClass, "bg-surface-muted text-muted-foreground")}>
-                  {matchedValve?.location ?? "-- กรอกรหัสวาล์วก่อน --"}
+                  {matchedValve?.asset_code ?? "-- เลือกจุดติดตั้งก่อน --"}
                 </div>
               </Field>
 
