@@ -17,10 +17,19 @@ const TITLES: Record<string, string> = {
   "/valves/history": "ประวัติการบำรุงรักษา",
   "/valves/reports": "รายงาน",
   "/valves/manual": "คู่มือการใช้งาน",
+  "/valves/activity": "ติดตามการอัปเดตข้อมูล",
   "/valves/settings": "ตั้งค่า",
 };
 
-const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/reports", "/valves/manual", "/valves/settings"];
+const RESERVED_SUBROUTES = [
+  "/valves/map",
+  "/valves/pm",
+  "/valves/history",
+  "/valves/reports",
+  "/valves/manual",
+  "/valves/activity",
+  "/valves/settings",
+];
 
 type Props = {
   onMenuClick?: () => void;

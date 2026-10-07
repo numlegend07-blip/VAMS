@@ -12,13 +12,21 @@ import {
   Settings,
   Building2,
   BookOpen,
+  ListChecks,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { isSuperAdmin } from "@/lib/auth";
 import { Profile } from "@/types";
 
-const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/reports", "/valves/manual"];
+const RESERVED_SUBROUTES = [
+  "/valves/map",
+  "/valves/pm",
+  "/valves/history",
+  "/valves/reports",
+  "/valves/manual",
+  "/valves/activity",
+];
 
 type NavItem = {
   label: string;
@@ -47,6 +55,9 @@ function getSections(canManageSettings: boolean): NavSection[] {
         { label: "บันทึกซ่อมบำรุง (PM)", href: "/valves/pm", icon: ClipboardList },
         { label: "ประวัติการบำรุงรักษา", href: "/valves/history", icon: History },
         { label: "รายงาน", href: "/valves/reports", icon: BarChart3 },
+        ...(canManageSettings
+          ? [{ label: "ติดตามการอัปเดตสาขา", href: "/valves/activity", icon: ListChecks }]
+          : []),
       ],
     },
     {
