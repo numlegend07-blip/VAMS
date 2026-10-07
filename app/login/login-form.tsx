@@ -26,7 +26,10 @@ export default function LoginForm() {
       const supabase = createClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: `${employeeCode.trim()}@vams.local`,
-        password,
+        // Accounts for employees whose code is under 6 digits get their password
+        // zero-padded to meet Supabase's minimum length (see scripts/import-employees.mjs),
+        // so staff can still just type their plain employee code here.
+        password: password.trim().padStart(6, "0"),
       });
 
       if (signInError) {

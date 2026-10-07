@@ -113,9 +113,14 @@ for (const emp of employees) {
   const role = branchId ? "branch_staff" : "region_admin";
   const email = `${emp.code}@vams.local`;
 
+  // Supabase requires passwords to be at least 6 characters. Employee codes shorter
+  // than that get zero-padded — the login form pads whatever the user types the
+  // same way, so staff can still just enter their plain employee code.
+  const password = (emp.password ?? emp.code).padStart(6, "0");
+
   const { data: created_user, error: createError } = await supabase.auth.admin.createUser({
     email,
-    password: emp.password ?? emp.code,
+    password,
     email_confirm: true,
     user_metadata: { full_name: emp.fullName },
   });
