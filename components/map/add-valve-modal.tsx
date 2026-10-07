@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import { Camera, Loader2, MapPin, Plus, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
-import { Branch, ValveStatus } from "@/types";
+import { Branch } from "@/types";
 import { cn } from "@/lib/utils";
+import {
+  EFFECTIVE_STATUS_LABEL,
+  EffectiveStatus,
+  isBrokenReason,
+} from "@/lib/valve-effective-status";
+
+const STATUS_OPTIONS: EffectiveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ชำรุด"];
 
 type FormState = {
   asset_code: string;
@@ -19,7 +26,8 @@ type FormState = {
   latitude: string;
   longitude: string;
   install_year_be: string;
-  status: ValveStatus;
+  status: EffectiveStatus;
+  inactive_reason: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -34,6 +42,7 @@ const EMPTY_FORM: FormState = {
   longitude: "",
   install_year_be: "",
   status: "ใช้งาน",
+  inactive_reason: "",
 };
 
 type Props = {
@@ -99,6 +108,28 @@ export default function AddValveModal({ branches }: Props) {
       setError("กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบ");
       return;
     }
+    if (form.status === "ไม่ได้ใช้งาน" && !form.inactive_reason.trim()) {
+      setError("กรุณาระบุเหตุผลที่ไม่ได้ใช้งาน");
+      return;
+    }
+    if (form.status === "ไม่ได้ใช้งาน" && isBrokenReason(form.inactive_reason)) {
+      setError('เหตุผลมีคำว่า "ชำรุด" — กรุณาเลือกสถานะ "ชำรุด" แทน');
+      return;
+    }
+
+    // "ชำรุด" isn't a stored status — it's ไม่ได้ใช้งาน whose reason starts with ชำรุด
+    // (see lib/valve-effective-status.ts), so the dashboard/map classify it correctly.
+    const trimmedReason = form.inactive_reason.trim();
+    const finalReason =
+      form.status === "ใช้งาน"
+        ? null
+        : form.status === "ชำรุด"
+          ? trimmedReason
+            ? isBrokenReason(trimmedReason)
+              ? trimmedReason
+              : `ชำรุด ${trimmedReason}`
+            : "ชำรุด"
+          : trimmedReason;
 
     setSubmitting(true);
     try {
@@ -130,7 +161,8 @@ export default function AddValveModal({ branches }: Props) {
         latitude: form.latitude ? Number(form.latitude) : null,
         longitude: form.longitude ? Number(form.longitude) : null,
         install_year_be: form.install_year_be ? Number(form.install_year_be) : null,
-        status: form.status,
+        status: form.status === "ใช้งาน" ? "ใช้งาน" : "ไม่ได้ใช้งาน",
+        inactive_reason: finalReason,
         image_url: imageUrl,
       });
 
@@ -332,15 +364,38 @@ export default function AddValveModal({ branches }: Props) {
                   <Field label="สถานะวาล์ว">
                     <select
                       value={form.status}
-                      onChange={(e) => set("status", e.target.value as ValveStatus)}
+                      onChange={(e) => set("status", e.target.value as EffectiveStatus)}
                       className={inputClass}
                     >
-                      <option value="ใช้งาน">✅ ใช้งานปกติ</option>
-                      <option value="ไม่ได้ใช้งาน">🔴 ไม่ได้ใช้งาน</option>
-                      <option value="ไม่ระบุ">🟣 ไม่ระบุสถานะ</option>
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s} value={s}>
+                          {EFFECTIVE_STATUS_LABEL[s]}
+                        </option>
+                      ))}
                     </select>
                   </Field>
                 </div>
+
+                {form.status !== "ใช้งาน" && (
+                  <div className="sm:col-span-2">
+                    <Field
+                      label={form.status === "ชำรุด" ? "รายละเอียดอาการชำรุด" : "เหตุผลที่ไม่ได้ใช้งาน"}
+                      required={form.status === "ไม่ได้ใช้งาน"}
+                    >
+                      <textarea
+                        value={form.inactive_reason}
+                        onChange={(e) => set("inactive_reason", e.target.value)}
+                        placeholder={
+                          form.status === "ชำรุด"
+                            ? "เช่น ยางซีลรั่ว, มอเตอร์เสีย (ไม่ใส่ก็ได้)"
+                            : "เช่น ปิดปรับปรุงพื้นที่, ระงับใช้ชั่วคราว"
+                        }
+                        rows={2}
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
+                )}
               </div>
 
               {error && (
