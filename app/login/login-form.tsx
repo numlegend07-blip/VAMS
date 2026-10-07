@@ -28,13 +28,25 @@ export default function LoginForm() {
     setSubmitting(true);
     try {
       const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: `${employeeCode.trim()}@vams.local`,
-        // Accounts for employees whose code is under 6 digits get their password
-        // zero-padded to meet Supabase's minimum length (see scripts/import-employees.mjs),
-        // so staff can still just type their plain employee code here.
-        password: password.trim().padStart(6, "0"),
+      const email = `${employeeCode.trim()}@vams.local`;
+      const rawPassword = password.trim();
+
+      let { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: rawPassword,
       });
+
+      // Most accounts' real password is the employee code typed as-is. A handful
+      // of newer accounts (code under 6 digits) had to be created with a
+      // zero-padded password instead, since Supabase now enforces a 6-character
+      // minimum — so if the plain code is rejected and is short, retry padded
+      // before surfacing an error.
+      if (signInError && rawPassword.length < 6) {
+        ({ error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: rawPassword.padStart(6, "0"),
+        }));
+      }
 
       if (signInError) {
         setError("รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง");
