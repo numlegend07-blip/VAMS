@@ -11,13 +11,14 @@ import {
   BarChart3,
   Settings,
   Building2,
+  BookOpen,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { isSuperAdmin } from "@/lib/auth";
 import { Profile } from "@/types";
 
-const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/reports"];
+const RESERVED_SUBROUTES = ["/valves/map", "/valves/pm", "/valves/history", "/valves/reports", "/valves/manual"];
 
 type NavItem = {
   label: string;
@@ -51,6 +52,7 @@ function getSections(canManageSettings: boolean): NavSection[] {
     {
       label: "ระบบ",
       items: [
+        { label: "คู่มือการใช้งาน", href: "/valves/manual", icon: BookOpen },
         {
           label: "ตั้งค่า",
           href: canManageSettings ? "/valves/settings" : null,
