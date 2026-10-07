@@ -110,11 +110,23 @@ export default function ValveInfoCard({ valve, pmRecords, branches }: Props) {
           )}
 
           <div className="mt-6">
-            <ActionButtons onPMClick={() => setShowPM((v) => !v)} pmActive={showPM} />
+            <ActionButtons
+              valveId={valve.id}
+              hasCoordinates={valve.latitude != null && valve.longitude != null}
+              hasPM={pmRecords.length > 0}
+              imageUrl={valve.image_url}
+              onPMClick={() => {
+                setShowPM(true);
+                requestAnimationFrame(() =>
+                  document.getElementById("pm-section")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                );
+              }}
+              pmActive={showPM}
+            />
           </div>
 
           {showPM && (
-            <>
+            <div id="pm-section">
               <PMTimeline records={pmRecords} />
 
               {showPMForm ? (
@@ -128,7 +140,7 @@ export default function ValveInfoCard({ valve, pmRecords, branches }: Props) {
                   เพิ่มบันทึก PM
                 </button>
               )}
-            </>
+            </div>
           )}
         </div>
 

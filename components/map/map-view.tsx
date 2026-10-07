@@ -14,9 +14,10 @@ const STATUS_LEGEND: EffectiveStatus[] = ["ใช้งาน", "ไม่ได
 type Props = {
   valves: ValveWithBranch[];
   branches: Branch[];
+  focusValveId: string | null;
 };
 
-export default function MapView({ valves, branches }: Props) {
+export default function MapView({ valves, branches, focusValveId }: Props) {
   const [branchId, setBranchId] = useState<string | "all">("all");
   const [editMode, setEditMode] = useState(false);
 
@@ -105,7 +106,7 @@ export default function MapView({ valves, branches }: Props) {
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
         <div style={{ height: "70vh", minHeight: 480 }}>
-          <ValveMapClient valves={filteredValves} editable={editMode} />
+          <ValveMapClient valves={filteredValves} editable={editMode} focusValveId={focusValveId} />
         </div>
       </div>
     </div>

@@ -43,7 +43,24 @@ const STATUS_ICONS = {
 type Props = {
   valves: ValveWithBranch[];
   editable?: boolean;
+  focusValveId?: string | null;
 };
+
+function FocusValve({ valveId }: { valveId: string | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!valveId) return;
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker && layer.options.alt === valveId) {
+        map.setView(layer.getLatLng(), 17);
+        layer.openPopup();
+      }
+    });
+  }, [map, valveId]);
+
+  return null;
+}
 
 function FitBounds({ bounds }: { bounds: [number, number][] }) {
   const map = useMap();
@@ -60,7 +77,7 @@ function FitBounds({ bounds }: { bounds: [number, number][] }) {
   return null;
 }
 
-export default function ValveMap({ valves, editable = false }: Props) {
+export default function ValveMap({ valves, editable = false, focusValveId = null }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -122,7 +139,7 @@ export default function ValveMap({ valves, editable = false }: Props) {
       zoom={8}
       style={{ height: "100%", width: "100%", background: "var(--surface-muted)" }}
     >
-      <FitBounds bounds={bounds} />
+      <FitBounds bounds={focusValveId ? [] : bounds} />
 
       <TileLayer
         url={isDark ? DARK_TILES : LIGHT_TILES}
@@ -138,6 +155,7 @@ export default function ValveMap({ valves, editable = false }: Props) {
         return (
         <Marker
           key={valve.id}
+          alt={valve.id}
           position={position}
           icon={STATUS_ICONS[effective]}
           draggable={editable}
@@ -236,6 +254,8 @@ export default function ValveMap({ valves, editable = false }: Props) {
         </Marker>
         );
       })}
+
+      <FocusValve valveId={focusValveId} />
     </MapContainer>
   );
 }
