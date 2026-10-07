@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import LoginForm from "./login-form";
 
@@ -22,7 +23,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <LoginForm />
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );

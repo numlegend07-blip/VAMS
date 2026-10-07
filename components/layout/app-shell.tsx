@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
+import IdleLogout from "./idle-logout";
 import { Profile } from "@/types";
 import { DueValve } from "@/lib/data/pm-history";
 
@@ -18,6 +19,7 @@ export default function AppShell({ children, profile, dueValves }: Props) {
 
   return (
     <div className="flex min-h-screen">
+      <IdleLogout />
       <Sidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} profile={profile} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Navbar onMenuClick={() => setMobileNavOpen((v) => !v)} profile={profile} dueValves={dueValves} />

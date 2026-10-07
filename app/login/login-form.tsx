@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const idleLoggedOut = searchParams.get("reason") === "idle";
+
   const [employeeCode, setEmployeeCode] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -49,6 +53,12 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4.5">
+      {idleLoggedOut && (
+        <p className="rounded-lg border border-warning/30 bg-warning/15 px-3 py-2.5 text-center text-sm text-amber-200">
+          ออกจากระบบอัตโนมัติเนื่องจากไม่มีการใช้งานนานเกินไป กรุณาเข้าสู่ระบบอีกครั้ง
+        </p>
+      )}
+
       <div>
         <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-white/70">
           รหัสพนักงาน
