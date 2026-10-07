@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Loader2, MapPin, Pencil, X } from "lucide-react";
+import { Camera, Loader2, MapPin, Pencil, Trash2, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Branch, ValveWithBranch } from "@/types";
@@ -65,10 +65,40 @@ function toFormState(valve: ValveWithBranch): FormState {
 type Props = {
   valve: ValveWithBranch;
   branches: Branch[];
+  pmCount: number;
 };
 
-export default function EditValveModal({ valve, branches }: Props) {
+export default function EditValveModal({ valve, branches, pmCount }: Props) {
   const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    const warning =
+      pmCount > 0
+        ? `ประวัติ PM ${pmCount} รายการของจุดนี้จะถูกลบไปด้วย\n\n`
+        : "";
+    if (!window.confirm(`${warning}ลบจุดติดตั้งนี้ใช่หรือไม่? การลบไม่สามารถกู้คืนได้`)) return;
+
+    setDeleting(true);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { data, error: deleteError } = await supabase
+        .from("valves")
+        .delete()
+        .eq("id", valve.id)
+        .select("id");
+
+      if (deleteError) throw new Error(deleteError.message);
+      if (!data || data.length === 0) throw new Error("ไม่มีสิทธิ์ลบจุดติดตั้งนี้");
+
+      router.push("/valves");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? `ลบไม่สำเร็จ: ${err.message}` : "ลบไม่สำเร็จ");
+      setDeleting(false);
+    }
+  }
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => toFormState(valve));
   const [submitting, setSubmitting] = useState(false);
@@ -463,7 +493,18 @@ export default function EditValveModal({ valve, branches }: Props) {
                 <p className="mt-4 rounded-lg bg-danger-subtle px-3 py-2 text-sm text-danger">{error}</p>
               )}
 
-              <div className="mt-5 flex justify-end gap-3">
+              <div className="mt-5 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting || submitting}
+                  className="flex items-center gap-2 rounded-lg border border-danger/40 px-4 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-subtle disabled:opacity-60"
+                >
+                  {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" strokeWidth={2.25} />}
+                  ลบจุดติดตั้ง
+                </button>
+
+                <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={close}
@@ -482,6 +523,7 @@ export default function EditValveModal({ valve, branches }: Props) {
                   {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   บันทึก
                 </button>
+                </div>
               </div>
             </form>
           </div>

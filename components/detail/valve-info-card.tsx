@@ -39,7 +39,7 @@ export default function ValveInfoCard({ valve, pmRecords, branches }: Props) {
           กลับไปหน้ารายการ
         </Link>
 
-        <EditValveModal valve={valve} branches={branches} />
+        <EditValveModal valve={valve} branches={branches} pmCount={pmRecords.length} />
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-6 shadow-sm md:p-8">
