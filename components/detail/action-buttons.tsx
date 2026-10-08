@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MapPin, Wrench, Camera, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Wrench, Camera, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,18 +10,18 @@ type Props = {
   valveId: string;
   hasCoordinates: boolean;
   hasPM: boolean;
-  imageUrl: string | null;
+  imageUrls: string[];
   onPMClick: () => void;
   pmActive?: boolean;
 };
 
-type Dialog = { kind: "message"; text: string } | { kind: "photo"; url: string } | null;
+type Dialog = { kind: "message"; text: string } | { kind: "photo"; index: number } | null;
 
 export default function ActionButtons({
   valveId,
   hasCoordinates,
   hasPM,
-  imageUrl,
+  imageUrls,
   onPMClick,
   pmActive,
 }: Props) {
@@ -65,14 +65,14 @@ export default function ActionButtons({
         <button
           type="button"
           onClick={() =>
-            imageUrl
-              ? setDialog({ kind: "photo", url: imageUrl })
+            imageUrls.length > 0
+              ? setDialog({ kind: "photo", index: 0 })
               : setDialog({ kind: "message", text: "ไม่มีข้อมูล" })
           }
           className={cn(baseStyle, idleStyle)}
         >
           <Camera className="h-4 w-4" strokeWidth={2.25} />
-          รูปภาพ
+          รูปภาพ{imageUrls.length > 0 ? ` (${imageUrls.length})` : ""}
         </button>
       </div>
 
@@ -94,8 +94,38 @@ export default function ActionButtons({
             </button>
 
             {dialog.kind === "photo" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={dialog.url} alt="รูปภาพวาล์ว" className="max-h-[80vh] w-full object-contain" />
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrls[dialog.index]}
+                  alt="รูปภาพวาล์ว"
+                  className="max-h-[80vh] w-full object-contain"
+                />
+
+                {imageUrls.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDialog({ kind: "photo", index: (dialog.index - 1 + imageUrls.length) % imageUrls.length })
+                      }
+                      className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white"
+                    >
+                      <ChevronLeft className="h-4 w-4" strokeWidth={2.5} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDialog({ kind: "photo", index: (dialog.index + 1) % imageUrls.length })}
+                      className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white"
+                    >
+                      <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
+                    </button>
+                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white">
+                      {dialog.index + 1} / {imageUrls.length}
+                    </span>
+                  </>
+                )}
+              </div>
             ) : (
               <p className="px-6 py-10 text-center text-sm font-medium text-foreground">{dialog.text}</p>
             )}

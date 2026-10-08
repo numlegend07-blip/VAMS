@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { useTheme } from "next-themes";
-import { Camera, Check, Loader2, Trash2, X as XIcon } from "lucide-react";
+import { Camera, Check, Loader2, X as XIcon } from "lucide-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import { createClient } from "@/lib/supabase/client";
 import { ValveWithBranch } from "@/types";
 import { cn } from "@/lib/utils";
+import { MAX_VALVE_IMAGES, uploadValveImage } from "@/lib/valve-images";
 import {
   EFFECTIVE_STATUS_COLORS,
   EFFECTIVE_STATUS_LABEL,
@@ -281,19 +282,22 @@ function ValvePhotoBlock({ valve }: { valve: ValveWithBranch }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deletingUrl, setDeletingUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleDelete() {
+  const images = valve.image_urls;
+  const atLimit = images.length >= MAX_VALVE_IMAGES;
+
+  async function handleDelete(url: string) {
     if (!window.confirm("ลบรูปภาพนี้ใช่หรือไม่?")) return;
 
-    setDeleting(true);
+    setDeletingUrl(url);
     setError(null);
     try {
       const supabase = createClient();
       const { error: updateError } = await supabase
         .from("valves")
-        .update({ image_url: null })
+        .update({ image_urls: images.filter((u) => u !== url) })
         .eq("id", valve.id);
       if (updateError) throw new Error(updateError.message);
 
@@ -301,28 +305,23 @@ function ValvePhotoBlock({ valve }: { valve: ValveWithBranch }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "ลบรูปไม่สำเร็จ");
     } finally {
-      setDeleting(false);
+      setDeletingUrl(null);
     }
   }
 
-  async function handleFile(file: File) {
+  async function handleFiles(files: FileList) {
+    const toUpload = Array.from(files).slice(0, Math.max(0, MAX_VALVE_IMAGES - images.length));
+    if (toUpload.length === 0) return;
+
     setUploading(true);
     setError(null);
     try {
       const supabase = createClient();
-      const ext = file.name.split(".").pop();
-      const path = `valves/${valve.id}/${crypto.randomUUID()}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("valve-images")
-        .upload(path, file);
-      if (uploadError) throw new Error(uploadError.message);
-
-      const publicUrl = supabase.storage.from("valve-images").getPublicUrl(path).data.publicUrl;
+      const uploadedUrls = await Promise.all(toUpload.map((file) => uploadValveImage(supabase, file, valve.id)));
 
       const { error: updateError } = await supabase
         .from("valves")
-        .update({ image_url: publicUrl })
+        .update({ image_urls: [...images, ...uploadedUrls] })
         .eq("id", valve.id);
       if (updateError) throw new Error(updateError.message);
 
@@ -340,60 +339,62 @@ function ValvePhotoBlock({ valve }: { valve: ValveWithBranch }) {
         ref={inputRef}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
+          if (e.target.files && e.target.files.length > 0) handleFiles(e.target.files);
           e.target.value = "";
         }}
       />
 
-      {valve.image_url ? (
-        <a href={valve.image_url} target="_blank" rel="noopener noreferrer" className="block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={valve.image_url}
-            alt={valve.location ?? valve.asset_code ?? "valve"}
-            className="h-24 w-full rounded-lg border border-border object-cover"
-          />
-        </a>
+      {images.length > 0 ? (
+        <div className="grid grid-cols-2 gap-1.5">
+          {images.map((url) => (
+            <div key={url} className="relative h-16 overflow-hidden rounded-lg border border-border">
+              <a href={url} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt={valve.location ?? valve.asset_code ?? "valve"}
+                  className="h-full w-full object-cover"
+                />
+              </a>
+              <button
+                type="button"
+                onClick={() => handleDelete(url)}
+                disabled={deletingUrl === url}
+                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white disabled:opacity-60"
+              >
+                {deletingUrl === url ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <XIcon className="h-3 w-3" strokeWidth={2.5} />
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="flex h-14 w-full items-center justify-center rounded-lg border border-dashed border-border text-[10.5px] text-muted-foreground">
           ยังไม่มีรูปภาพ
         </div>
       )}
 
-      <div className="mt-1.5 flex gap-1.5">
+      {!atLimit && (
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          disabled={uploading || deleting}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
+          disabled={uploading}
+          className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-1.5 text-[11px] font-medium text-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-60"
         >
           {uploading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <Camera className="h-3.5 w-3.5" strokeWidth={2.25} />
           )}
-          {uploading ? "กำลังอัปโหลด..." : valve.image_url ? "อัปเดตรูปภาพ" : "ถ่าย/แนบรูปภาพ"}
+          {uploading ? "กำลังอัปโหลด..." : `เพิ่มรูป (${images.length}/${MAX_VALVE_IMAGES})`}
         </button>
-
-        {valve.image_url && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={uploading || deleting}
-            className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-danger transition-colors hover:border-danger hover:bg-danger-subtle disabled:opacity-60"
-          >
-            {deleting ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} />
-            )}
-            ลบรูป
-          </button>
-        )}
-      </div>
+      )}
 
       {error && <p className="mt-1 text-[10.5px] text-danger">{error}</p>}
     </div>

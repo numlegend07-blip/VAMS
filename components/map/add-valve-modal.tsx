@@ -12,6 +12,7 @@ import {
   EffectiveStatus,
   isBrokenReason,
 } from "@/lib/valve-effective-status";
+import { MAX_VALVE_IMAGES, uploadValveImage } from "@/lib/valve-images";
 
 const STATUS_OPTIONS: EffectiveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ชำรุด"];
 
@@ -57,9 +58,18 @@ export default function AddValveModal({ branches }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const photoPreviewUrl = photoFile ? URL.createObjectURL(photoFile) : null;
+  const photoPreviewUrls = photoFiles.map((f) => URL.createObjectURL(f));
+
+  function addPhotoFiles(files: FileList | null) {
+    if (!files) return;
+    setPhotoFiles((prev) => [...prev, ...Array.from(files)].slice(0, MAX_VALVE_IMAGES));
+  }
+
+  function removePhotoFile(index: number) {
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+  }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -71,7 +81,7 @@ export default function AddValveModal({ branches }: Props) {
     setError(null);
     setLocationError(null);
     setLocating(false);
-    setPhotoFile(null);
+    setPhotoFiles([]);
   }
 
   function handleUseLocation() {
@@ -135,20 +145,7 @@ export default function AddValveModal({ branches }: Props) {
     try {
       const supabase = createClient();
 
-      let imageUrl: string | null = null;
-      if (photoFile) {
-        const ext = photoFile.name.split(".").pop();
-        const path = `valves/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("valve-images")
-          .upload(path, photoFile);
-
-        if (uploadError) {
-          throw new Error(`อัปโหลดรูปไม่สำเร็จ: ${uploadError.message}`);
-        }
-
-        imageUrl = supabase.storage.from("valve-images").getPublicUrl(path).data.publicUrl;
-      }
+      const imageUrls = await Promise.all(photoFiles.map((file) => uploadValveImage(supabase, file)));
 
       const { error: insertError } = await supabase.from("valves").insert({
         asset_code: form.asset_code.trim(),
@@ -163,7 +160,7 @@ export default function AddValveModal({ branches }: Props) {
         install_year_be: form.install_year_be ? Number(form.install_year_be) : null,
         status: form.status === "ใช้งาน" ? "ใช้งาน" : "ไม่ได้ใช้งาน",
         inactive_reason: finalReason,
-        image_url: imageUrl,
+        image_urls: imageUrls,
       });
 
       if (insertError) {
@@ -326,38 +323,46 @@ export default function AddValveModal({ branches }: Props) {
 
                 <div className="sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    ภาพถ่ายวาล์ว
+                    ภาพถ่ายวาล์ว (ได้สูงสุด {MAX_VALVE_IMAGES} รูป)
                   </span>
                   <input
                     ref={photoInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
-                    onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                    onChange={(e) => {
+                      addPhotoFiles(e.target.files);
+                      e.target.value = "";
+                    }}
                   />
 
-                  {photoPreviewUrl ? (
-                    <div className="relative h-36 w-full overflow-hidden rounded-lg border border-border">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photoPreviewUrl} alt="ภาพวาล์ว" className="h-full w-full object-cover" />
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                    {photoPreviewUrls.map((url, i) => (
+                      <div key={url} className="relative h-24 overflow-hidden rounded-lg border border-border">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="ภาพวาล์ว" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removePhotoFile(i)}
+                          className="absolute right-1 top-1 flex h-5.5 w-5.5 items-center justify-center rounded-full bg-black/60 text-white"
+                        >
+                          <X className="h-3 w-3" strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    ))}
+
+                    {photoFiles.length < MAX_VALVE_IMAGES && (
                       <button
                         type="button"
-                        onClick={() => setPhotoFile(null)}
-                        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                        onClick={() => photoInputRef.current?.click()}
+                        className="flex h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary"
                       >
-                        <X className="h-3.5 w-3.5" strokeWidth={2.5} />
+                        <Camera className="h-5 w-5" strokeWidth={2} />
+                        <span className="text-[11px]">เพิ่มรูป</span>
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => photoInputRef.current?.click()}
-                      className="flex h-24 w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      <Camera className="h-5 w-5" strokeWidth={2} />
-                      <span className="text-xs">ถ่ายภาพ / แนบรูปภาพวาล์ว</span>
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">

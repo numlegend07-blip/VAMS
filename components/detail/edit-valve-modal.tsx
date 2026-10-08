@@ -13,6 +13,7 @@ import {
   getEffectiveStatus,
   isBrokenReason,
 } from "@/lib/valve-effective-status";
+import { MAX_VALVE_IMAGES, uploadValveImage } from "@/lib/valve-images";
 
 const STATUS_OPTIONS: EffectiveStatus[] = ["ใช้งาน", "ไม่ได้ใช้งาน", "ชำรุด"];
 
@@ -103,9 +104,11 @@ export default function EditValveModal({ valve, branches, pmCount }: Props) {
   const [form, setForm] = useState<FormState>(() => toFormState(valve));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [existingImages, setExistingImages] = useState<string[]>(valve.image_urls);
+  const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([]);
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const photoPreviewUrl = photoFile ? URL.createObjectURL(photoFile) : valve.image_url;
+  const newPhotoPreviewUrls = newPhotoFiles.map((f) => URL.createObjectURL(f));
+  const totalPhotoCount = existingImages.length + newPhotoFiles.length;
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
@@ -113,10 +116,26 @@ export default function EditValveModal({ valve, branches, pmCount }: Props) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function addPhotoFiles(files: FileList | null) {
+    if (!files) return;
+    setNewPhotoFiles((prev) =>
+      [...prev, ...Array.from(files)].slice(0, Math.max(0, MAX_VALVE_IMAGES - existingImages.length))
+    );
+  }
+
+  function removeExistingImage(index: number) {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function removeNewPhotoFile(index: number) {
+    setNewPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
   function openModal() {
     setForm(toFormState(valve));
     setError(null);
-    setPhotoFile(null);
+    setExistingImages(valve.image_urls);
+    setNewPhotoFiles([]);
     setLocationError(null);
     setOpen(true);
   }
@@ -124,7 +143,7 @@ export default function EditValveModal({ valve, branches, pmCount }: Props) {
   function close() {
     setOpen(false);
     setError(null);
-    setPhotoFile(null);
+    setNewPhotoFiles([]);
     setLocationError(null);
     setLocating(false);
   }
@@ -168,20 +187,10 @@ export default function EditValveModal({ valve, branches, pmCount }: Props) {
     try {
       const supabase = createClient();
 
-      let imageUrl = valve.image_url;
-      if (photoFile) {
-        const ext = photoFile.name.split(".").pop();
-        const path = `valves/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("valve-images")
-          .upload(path, photoFile);
-
-        if (uploadError) {
-          throw new Error(`อัปโหลดรูปไม่สำเร็จ: ${uploadError.message}`);
-        }
-
-        imageUrl = supabase.storage.from("valve-images").getPublicUrl(path).data.publicUrl;
-      }
+      const uploadedUrls = await Promise.all(
+        newPhotoFiles.map((file) => uploadValveImage(supabase, file, valve.id))
+      );
+      const imageUrls = [...existingImages, ...uploadedUrls];
 
       // "ชำรุด" isn't a real status value — it's ไม่ได้ใช้งาน whose reason mentions ชำรุด
       // (see lib/valve-effective-status.ts). Make sure that substring survives the save
@@ -210,7 +219,7 @@ export default function EditValveModal({ valve, branches, pmCount }: Props) {
           remark: form.remark.trim() || null,
           status: form.status === "ใช้งาน" ? "ใช้งาน" : "ไม่ได้ใช้งาน",
           inactive_reason: form.status === "ใช้งาน" ? null : reason || null,
-          image_url: imageUrl,
+          image_urls: imageUrls,
         })
         .eq("id", valve.id);
 
@@ -415,39 +424,60 @@ export default function EditValveModal({ valve, branches, pmCount }: Props) {
 
                 <div className="sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                    ภาพถ่ายวาล์ว
+                    ภาพถ่ายวาล์ว (ได้สูงสุด {MAX_VALVE_IMAGES} รูป)
                   </span>
                   <input
                     ref={photoInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
-                    onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                    onChange={(e) => {
+                      addPhotoFiles(e.target.files);
+                      e.target.value = "";
+                    }}
                   />
 
-                  {photoPreviewUrl ? (
-                    <div className="relative h-36 w-full overflow-hidden rounded-lg border border-border">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photoPreviewUrl} alt="ภาพวาล์ว" className="h-full w-full object-cover" />
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                    {existingImages.map((url, i) => (
+                      <div key={url} className="relative h-24 overflow-hidden rounded-lg border border-border">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="ภาพวาล์ว" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(i)}
+                          className="absolute right-1 top-1 flex h-5.5 w-5.5 items-center justify-center rounded-full bg-black/60 text-white"
+                        >
+                          <X className="h-3 w-3" strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    ))}
+
+                    {newPhotoPreviewUrls.map((url, i) => (
+                      <div key={url} className="relative h-24 overflow-hidden rounded-lg border border-primary">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt="ภาพวาล์วใหม่" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeNewPhotoFile(i)}
+                          className="absolute right-1 top-1 flex h-5.5 w-5.5 items-center justify-center rounded-full bg-black/60 text-white"
+                        >
+                          <X className="h-3 w-3" strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    ))}
+
+                    {totalPhotoCount < MAX_VALVE_IMAGES && (
                       <button
                         type="button"
                         onClick={() => photoInputRef.current?.click()}
-                        className="absolute bottom-1.5 right-1.5 flex items-center gap-1.5 rounded-lg bg-black/60 px-2.5 py-1.5 text-xs font-medium text-white"
+                        className="flex h-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary"
                       >
-                        <Camera className="h-3.5 w-3.5" strokeWidth={2.25} />
-                        เปลี่ยนรูป
+                        <Camera className="h-5 w-5" strokeWidth={2} />
+                        <span className="text-[11px]">เพิ่มรูป</span>
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => photoInputRef.current?.click()}
-                      className="flex h-24 w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      <Camera className="h-5 w-5" strokeWidth={2} />
-                      <span className="text-xs">ถ่ายภาพ / แนบรูปภาพวาล์ว</span>
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">

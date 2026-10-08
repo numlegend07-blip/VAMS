@@ -42,7 +42,7 @@ export interface Valve {
   pressure_out: number | null;
   flow_rate: number | null;
 
-  image_url: string | null;
+  image_urls: string[];
 
   created_at: string;
   updated_at: string;

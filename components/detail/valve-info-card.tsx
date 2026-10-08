@@ -114,7 +114,7 @@ export default function ValveInfoCard({ valve, pmRecords, branches }: Props) {
               valveId={valve.id}
               hasCoordinates={valve.latitude != null && valve.longitude != null}
               hasPM={pmRecords.length > 0}
-              imageUrl={valve.image_url}
+              imageUrls={valve.image_urls}
               onPMClick={() => {
                 setShowPM(true);
                 requestAnimationFrame(() =>
