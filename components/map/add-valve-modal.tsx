@@ -64,7 +64,12 @@ export default function AddValveModal({ branches }: Props) {
 
   function addPhotoFiles(files: FileList | null) {
     if (!files) return;
-    setPhotoFiles((prev) => [...prev, ...Array.from(files)].slice(0, MAX_VALVE_IMAGES));
+    // Snapshot into a plain array synchronously — `files` is a live FileList tied
+    // to the <input>, and the onChange handler resets input.value right after this
+    // call, which clears that same FileList before React gets around to running a
+    // setState updater callback. Array.from(files) must happen before that reset.
+    const picked = Array.from(files);
+    setPhotoFiles((prev) => [...prev, ...picked].slice(0, MAX_VALVE_IMAGES));
   }
 
   function removePhotoFile(index: number) {
