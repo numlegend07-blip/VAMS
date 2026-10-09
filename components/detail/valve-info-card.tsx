@@ -11,6 +11,7 @@ import { EFFECTIVE_STATUS_BADGE, EFFECTIVE_STATUS_LABEL, getEffectiveStatus } fr
 import DetailSpecCard from "./detail-spec-card";
 import ActionButtons from "./action-buttons";
 import EditValveModal from "./edit-valve-modal";
+import ConfirmDataButton from "./confirm-data-button";
 import HealthCard from "./health-card";
 import PMTimeline from "../pm/pm-timeline";
 import PMForm from "../pm/pm-form";
@@ -30,7 +31,7 @@ export default function ValveInfoCard({ valve, pmRecords, branches }: Props) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/valves"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -39,7 +40,10 @@ export default function ValveInfoCard({ valve, pmRecords, branches }: Props) {
           กลับไปหน้ารายการ
         </Link>
 
-        <EditValveModal valve={valve} branches={branches} pmCount={pmRecords.length} />
+        <div className="flex flex-wrap items-center gap-2.5">
+          <ConfirmDataButton valveId={valve.id} currentRemark={valve.remark} />
+          <EditValveModal valve={valve} branches={branches} pmCount={pmRecords.length} />
+        </div>
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-6 shadow-sm md:p-8">
